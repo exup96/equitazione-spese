@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equitazione - Gestione Spese & Concorsi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX) CDN per lettura/scrittura Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- Google Identity Services (OAuth 2.0) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .bg-racing-green { background-color: #1b4332; }
+        .text-racing-green { color: #1b4332; }
+        .bg-gold { background-color: #d4af37; }
+        .text-gold { color: #d4af37; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased pb-20">
+
+    <!-- Header Navbar -->
+    <header class="bg-racing-green text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold tracking-tight flex items-center gap-2">
+                    <span>🐴</span> Equitazione
+                </h1>
+                <p class="text-[11px] text-emerald-200">Gestione Spese &amp; Concorsi</p>
+            </div>
+            <div class="text-xs bg-emerald-900/60 px-3 py-1.5 rounded-lg border border-emerald-700 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-emerald-100 font-medium">Cloud &amp; Backup Locale</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pt-5 space-y-6">
+
+        <!-- Tab Navigazione -->
+        <div class="flex border-b border-slate-200 bg-white rounded-xl p-1 shadow-sm gap-1 overflow-x-auto">
+            <button onclick="switchTab('spese')" id="tab-spese" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white transition shadow whitespace-nowrap">
+                💳 Registro Spese
+            </button>
+            <button onclick="switchTab('concorsi')" id="tab-concorsi" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+                🏆 Storico Concorsi
+            </button>
+            <button onclick="switchTab('grafico')" id="tab-grafico" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+                📈 Andamento Costi
+            </button>
+            <button onclick="switchTab('tabelle')" id="tab-tabelle" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+                ⚙️ Tabelle &amp; Backup
+            </button>
+        </div>
+
+        <!-- SEZIONE 1: REGISTRO SPESE -->
+        <section id="sec-spese" class="space-y-4">
+            
+            <!-- KPI Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase" id="kpi-label-totale">Totale Speso 2026</p>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-0.5" id="kpi-total">€ 0.00</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Media Mensile</p>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-0.5" id="kpi-avg">€ 0.00</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Gare Disputate</p>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-0.5" id="kpi-races">0</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Percorsi Netti (0 Pen)</p>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-0.5" id="kpi-clears">0</h3>
+                </div>
+            </div>
+
+            <!-- Toolbar Filtri & Pulsante Nuovo Record Spesa -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 justify-between items-center">
+                <div class="flex gap-2 w-full md:w-auto flex-1">
+                    <input type="text" id="searchSpesa" onkeyup="renderSpese()" placeholder="Cerca nota o scuderia..." class="text-xs border border-slate-300 rounded-lg px-3 py-2 w-full md:w-60 focus:outline-none">
+                    <select id="filterAnno" onchange="renderSpese(); renderConcorsi(); updateChart();" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white font-medium">
+                        <option value="2026" selected>Anno 2026</option>
+                        <option value="2025">Anno 2025</option>
+                        <option value="2024">Anno 2024</option>
+                        <option value="ALL">Tutti gli Anni</option>
+                    </select>
+                </div>
+                <button onclick="openModalSpesa()" class="px-4 py-2 bg-gold text-slate-900 font-bold text-xs rounded-lg hover:bg-yellow-400 shadow transition flex items-center gap-1">
+                    <span>+</span> Registra Nuova Spesa / Movimento
+                </button>
+            </div>
+
+            <!-- Tabella Spese -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-[10px]">
+                                <th class="p-3">Data Fattura</th>
+                                <th class="p-3 text-center">Fattura</th>
+                                <th class="p-3">Data Evento</th>
+                                <th class="p-3">Scuderia / Luogo</th>
+                                <th class="p-3">Dettaglio Spesa</th>
+                                <th class="p-3 text-right">Importo Singolo</th>
+                                <th class="p-3 text-right">Costo Totale Fattura</th>
+                                <th class="p-3">Note</th>
+                                <th class="p-3 text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-spese" class="divide-y divide-slate-100">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEZIONE 2: STORICO CONCORSI -->
+        <section id="sec-concorsi" class="space-y-4 hidden">
+
+            <!-- Intestazione -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900">
+                            🏆 Storico Concorsi
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Risultati ufficiali atleta
+                        </p>
+                    </div>
+
+                    <a id="equiresults-open"
+                       href="#"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="px-4 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800 shadow transition">
+                        Apri su Equiresults ↗
+                    </a>
+                </div>
+
+                <!-- Inserimento link atleta -->
+                <div class="flex gap-2">
+                    <input
+                        id="equiresults-url"
+                        type="url"
+                        placeholder="Incolla qui il link Equiresults dell'atleta"
+                        class="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+
+                    <button
+                        type="button"
+                        onclick="caricaEquiresults()"
+                        class="px-4 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800 shadow transition">
+                        Carica
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Equiresults -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+
+                <iframe
+                    id="equiresults-frame"
+                    src=""
+                    title="Risultati atleta - Equiresults"
+                    style="width:100%; height:850px; border:0; display:block;"
+                    loading="lazy">
+                </iframe>
+
+            </div>
+
+        </section>
+
+        <!-- SEZIONE 3: GRAFICO ANDAMENTO COSTI -->
+        <section id="sec-grafico" class="space-y-4 hidden">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900">Andamento Costi Mensili</h2>
+                        <p class="text-[11px] text-slate-500">Confronto importi per mese e anno</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-slate-700">Seleziona Anno:</label>
+                        <select id="chartFilterAnno" onchange="updateChart()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white font-medium">
+                            <option value="ALL">Tutti gli Anni</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relative w-full h-[380px]">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEZIONE 4: TABELLE E DECODIFICHE + BACKUP -->
+        <section id="sec-tabelle" class="space-y-4 hidden">
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                
+                <!-- CARD 1: BACKUP GOOGLE DRIVE -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap justify-between items-start gap-2">
+                            <div>
+                                <h2 class="font-bold text-sm text-slate-900">
+                                    ☁️ Backup su Google Drive
+                                </h2>
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Sincronizza automaticamente un file Excel (.xlsx) sul tuo spazio Google Drive personale.
+                                </p>
+                            </div>
+
+                            <div
+                                id="drive-status"
+                                class="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-[10px] font-semibold whitespace-nowrap"
+                            >
+                                ● Non collegato
+                            </div>
+                        </div>
+
+                        <!-- Collegamento Google Drive -->
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                id="drive-connect-button"
+                                type="button"
+                                onclick="collegaGoogleDrive()"
+                                class="px-4 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800 shadow transition"
+                            >
+                                🔗 Accedi con Google Drive
+                            </button>
+
+                            <button
+                                id="drive-disconnect-button"
+                                type="button"
+                                onclick="scollegaGoogleDrive()"
+                                class="hidden px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-200 border border-slate-300 transition"
+                            >
+                                Disconnetti
+                            </button>
+                        </div>
+
+                        <!-- Percorso backup -->
+                        <div>
+                            <label
+                                for="drive-backup-path"
+                                class="block font-semibold text-xs text-slate-700 mb-1"
+                            >
+                                Percorso file su Google Drive
+                            </label>
+
+                            <input
+                                id="drive-backup-path"
+                                type="text"
+                                value="DRIVE/Equitazione/Equitazione_Backup.xlsx"
+                                onchange="salvaPercorsoBackupDrive()"
+                                placeholder="DRIVE/Equitazione/Equitazione_Backup.xlsx"
+                                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            >
+                            <p class="text-[10px] text-slate-400 mt-1">
+                                Le cartelle non ancora presenti verranno create automaticamente nel tuo Drive.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <!-- Azioni backup Drive -->
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                id="drive-backup-button"
+                                type="button"
+                                onclick="eseguiBackupDrive()"
+                                disabled
+                                class="px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition"
+                            >
+                                ☁️ Salva su Drive
+                            </button>
+
+                            <button
+                                id="drive-restore-button"
+                                type="button"
+                                onclick="ripristinaBackupDrive()"
+                                disabled
+                                class="px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition"
+                            >
+                                ↩ Ripristina da Drive
+                            </button>
+                        </div>
+
+                        <!-- Messaggi Drive -->
+                        <div
+                            id="drive-message"
+                            class="hidden text-xs rounded-lg px-3 py-2"
+                        >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: BACKUP LOCALE SU FILE EXCEL (.XLSX) -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div>
+                            <h2 class="font-bold text-sm text-slate-900">
+                                💾 Backup Locale su Dispositivo (.xlsx)
+                            </h2>
+                            <p class="text-[11px] text-slate-500 mt-1">
+                                Esporta o importa direttamente un file Excel sul tuo PC, smartphone o iCloud senza bisogno di alcun account Google.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-600 space-y-1">
+                            <p class="font-semibold text-slate-700">Cosa contiene il file Excel:</p>
+                            <ul class="list-disc list-inside space-y-0.5 text-slate-500">
+                                <li>Foglio <strong>Spese</strong> (tutte le voci registrate)</li>
+                                <li>Foglio <strong>Concorsi</strong> (storico gare)</li>
+                                <li>Foglio <strong>Tabelle</strong> (categorie e scuderie personalizzate)</li>
+                                <li>Foglio <strong>Configurazione</strong> (link atleta Equiresults)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onclick="scaricaBackupLocale()"
+                                class="px-4 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800 shadow transition cursor-pointer"
+                            >
+                                ⬇️ Scarica Backup (.xlsx)
+                            </button>
+
+                            <label
+                                for="local-restore-file"
+                                class="px-4 py-2 bg-gold text-slate-900 font-bold text-xs rounded-lg hover:bg-yellow-400 shadow transition cursor-pointer inline-flex items-center"
+                            >
+                                ⬆️ Carica Backup (.xlsx)
+                            </label>
+                            <input
+                                id="local-restore-file"
+                                type="file"
+                                accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                onchange="caricaBackupLocale(event)"
+                                class="hidden"
+                            >
+                        </div>
+
+                        <!-- Messaggi Locale -->
+                        <div
+                            id="local-message"
+                            class="hidden text-xs rounded-lg px-3 py-2"
+                        >
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Liste Categorie e Scuderie -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-500">Categorie Spesa (Sheet Tabelle)</h3>
+                        <button onclick="addCategoriePrompt()" class="text-xs font-bold text-emerald-800 hover:underline">+ Nuova Categoria</button>
+                    </div>
+                    <ul id="list-categorie" class="divide-y divide-slate-100 text-xs"></ul>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-500">Scuderie &amp; Circoli</h3>
+                        <button onclick="addScuderiaPrompt()" class="text-xs font-bold text-emerald-800 hover:underline">+ Nuova Scuderia/Località</button>
+                    </div>
+                    <ul id="list-scuderie" class="divide-y divide-slate-100 text-xs"></ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALE NUOVA SPESA / MOVIMENTO -->
+    <div id="expenseModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg mx-4 overflow-hidden">
+            <div class="bg-racing-green text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm">Registra Nuova Spesa / Movimento</h3>
+                <button onclick="closeModalSpesa()" class="text-emerald-200 hover:text-white text-lg font-bold">&times;</button>
+            </div>
+            <form id="expenseForm" onsubmit="saveNewSpesa(event)" class="p-6 space-y-4 text-xs">
+                
+                <!-- Flag Fattura + Data Fattura (editabile solo se Fattura è attivo) -->
+                <div class="grid grid-cols-2 gap-3 items-end">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1" id="labelDataFattura">Data fattura</label>
+                        <input type="date" id="inputSpesaData" onchange="updateTotaleFatturaPreview()" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2.5 h-[34px]">
+                        <input type="checkbox" id="inputSpesaIsFattura" checked onchange="onToggleFattura()" class="w-4 h-4 accent-emerald-800 rounded cursor-pointer">
+                        <label for="inputSpesaIsFattura" class="font-bold text-slate-800 cursor-pointer select-none">Fattura</label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Scuderia / Luogo</label>
+                    <select id="inputSpesaScuderia" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white font-medium"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Dettaglio / Categoria Spesa</label>
+                    <select id="inputSpesaCategoria" onchange="checkCategoriaConcorso()" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white font-medium"></select>
+                </div>
+                
+                <!-- Importo Singolo + Totale Fattura calcolato automaticamente + Data Evento condizionale -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Importo Singolo (€) <span class="text-slate-400 font-normal">(facoltativo)</span></label>
+                        <input type="number" step="0.01" id="inputSpesaImporto" oninput="updateTotaleFatturaPreview()" placeholder="0.00" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div id="totaleFatturaPreviewBox">
+                        <label class="block font-semibold text-slate-700 mb-1">Costo Totale Fattura (€) <span class="text-emerald-700 font-normal">(auto)</span></label>
+                        <input type="text" id="inputSpesaTotalePreview" readonly value="€ 0.00" class="w-full border border-slate-200 bg-slate-100 text-slate-700 font-bold rounded-lg px-3 py-2 cursor-not-allowed">
+                    </div>
+                </div>
+
+                <div id="dataEventoContainer" class="hidden">
+                    <label class="block font-semibold text-emerald-800 mb-1">Data Evento</label>
+                    <input type="date" id="inputSpesaDataEvento" class="w-full border border-emerald-400 bg-emerald-50 rounded-lg px-3 py-2">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Note / Descrizione</label>
+                    <textarea id="inputSpesaNote" rows="2" placeholder="Eventuali note..." class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModalSpesa()" class="px-4 py-2 bg-slate-100 text-slate-600 font-semibold rounded-lg hover:bg-slate-200">Annulla</button>
+                    <button type="submit" class="px-4 py-2 bg-gold text-slate-900 font-bold rounded-lg hover:bg-yellow-400">Salva Spesa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE INSERISCI EVENTO (STORICO CONCORSI) -->
+    <div id="concorsoModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg mx-4 overflow-hidden">
+            <div class="bg-racing-green text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm">Inserisci Evento / Risultato Gara</h3>
+                <button onclick="closeModalConcorso()" class="text-emerald-200 hover:text-white text-lg font-bold">&times;</button>
+            </div>
+            <form id="concorsoForm" onsubmit="saveNewConcorso(event)" class="p-6 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Data</label>
+                        <input type="date" id="inputConcData" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Scuderia / Circolo</label>
+                        <select id="inputConcScuderia" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white font-medium"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Dettaglio Concorso</label>
+                    <input type="text" id="inputConcDettaglio" required placeholder="es. L70 di Precisione - Tab. A" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Posizione</label>
+                        <input type="number" id="inputConcPos" placeholder="es. 1" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Penalità</label>
+                        <input type="number" id="inputConcPen" placeholder="es. 0" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Tempo</label>
+                        <input type="text" id="inputConcTempo" placeholder="es. 58.42" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Percentuale</label>
+                        <input type="text" id="inputConcPerc" placeholder="es. 64.5%" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Note / Descrizione</label>
+                    <textarea id="inputConcNote" rows="2" placeholder="Eventuali note..." class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModalConcorso()" class="px-4 py-2 bg-slate-100 text-slate-600 font-semibold rounded-lg hover:bg-slate-200">Annulla</button>
+                    <button type="submit" class="px-4 py-2 bg-racing-green text-white font-bold rounded-lg hover:bg-emerald-800">Salva Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // CONFIGURAZIONE PUBBLICA GOOGLE OAUTH 2.0
+        // Inserisci qui il tuo Client ID ottenuto da Google Cloud Console
+        // (es. "1234567890-abcdefg.apps.googleusercontent.com")
+        // =========================================================================
+        const GOOGLE_CLIENT_ID = "INSERISCI_QUI_IL_TUO_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+        const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive.file";
+
+        var defaultCategorie = [
+            "Rimborso spese servizi esclusivi per gli associati mezza fida Melody",
+            "Carote",
+            "Ferratura",
+            "Tosatura",
+            "Trasferta istruttore",
+            "Trasferta Groom",
+            "Rimborso spese Trasporti del Belevedere",
+            "Rimborso spese trasporto Van Capinera",
+            "Rimborso trasporto (vett. non spec.)",
+            "Spese di segreteria",
+            "Spese medicina veterinaria Coggin",
+            "Spese medicina veterinaria dentista",
+            "Spese medicina veterinaria vaccino anti influenzale",
+            "Spese medicina veterinaria vaccinazione West Nile",
+            "Spese medicina veterinaria Vermifugo",
+            "Concorso (iscr. gara in loco)",
+            "Campus estivo",
+            "Stage Scuola",
+            "Iscrizione annuale",
+            "Lezioni",
+            "Rimborso spese servizi esclusivi per gli associati mezza fida Jolene",
+            "Non dettagliato"
+        ];
+
+        var defaultScuderie = [
+            "ASD Sceree (Bodio Lomnago)",
+            "ETREA (Busto Arsizio)",
+            "Le Ginestre (Buscate)",
+            "San Martino",
+            "Tenuta Bornago, Cameri (Caccia alla volpe)",
+            "Equieffe Equestrian Center (Gorla)",
+            "Garzonera Horser Yard asd",
+            "Scuderia della Capinera",
+            "Scuderie San Giorgio (Verolanuova)"
+        ];
+
+        var dataSpese = [];
+        var dataConcorsi = [];
+        var dataCategorie = [];
+        var dataScuderie = [];
+        var costChartInstance = null;
+
+        function initApp() {
+            var savedExp = localStorage.getItem("spese_v12");
+            var savedConc = localStorage.getItem("conc_v12");
+            var savedCat = localStorage.getItem("cat_v12");
+            var savedScu = localStorage.getItem("scu_v12");
+
+            dataSpese = savedExp ? JSON.parse(savedExp) : [];
+            dataConcorsi = savedConc ? JSON.parse(savedConc) : [];
+            dataCategorie = savedCat ? JSON.parse(savedCat) : defaultCategorie;
+            dataScuderie = savedScu ? JSON.parse(savedScu) : defaultScuderie;
+
+            populateSelects();
+            renderSpese();
+            renderConcorsi();
+            renderTabelle();
+            initChart();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('sec-spese').classList.toggle('hidden', tab !== 'spese');
+            document.getElementById('sec-concorsi').classList.toggle('hidden', tab !== 'concorsi');
+            document.getElementById('sec-grafico').classList.toggle('hidden', tab !== 'grafico');
+            document.getElementById('sec-tabelle').classList.toggle('hidden', tab !== 'tabelle');
+
+            document.getElementById('tab-spese').className = tab === 'spese' ? 'flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white shadow whitespace-nowrap' : 'flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            document.getElementById('tab-concorsi').className = tab === 'concorsi' ? 'flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white shadow whitespace-nowrap' : 'flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            document.getElementById('tab-grafico').className = tab === 'grafico' ? 'flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white shadow whitespace-nowrap' : 'flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 whitespace-nowrap';
+            document.getElementById('tab-tabelle').className = tab === 'tabelle' ? 'flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white shadow whitespace-nowrap' : 'flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 whitespace-nowrap';
+
+            if (tab === 'grafico') {
+                updateChart();
+            }
+        }
+
+        function getTotaleFatturaByData(dataStr) {
+            if (!dataStr) return 0;
+            let sum = 0;
+            dataSpese.forEach(item => {
+                if (item.isFattura && item.data === dataStr) {
+                    const val = parseFloat(item.importo);
+                    if (!isNaN(val)) sum += val;
+                }
+            });
+            return sum;
+        }
+
+        function renderSpese() {
+            const search = (document.getElementById('searchSpesa').value || "").toLowerCase();
+            const year = document.getElementById('filterAnno').value;
+            const body = document.getElementById('body-spese');
+
+            const invoiceTotalsByDate = {};
+            dataSpese.forEach(s => {
+                if (s.isFattura && s.data) {
+                    const val = parseFloat(s.importo);
+                    if (!invoiceTotalsByDate[s.data]) invoiceTotalsByDate[s.data] = 0;
+                    if (!isNaN(val)) invoiceTotalsByDate[s.data] += val;
+                }
+            });
+
+            let filtered = dataSpese.filter(s => {
+                const matchYear = (year === "ALL") || (s.data && s.data.startsWith(year));
+                const matchSearch = !search || 
+                    (s.scuderia && s.scuderia.toLowerCase().includes(search)) || 
+                    (s.dettaglio && s.dettaglio.toLowerCase().includes(search)) || 
+                    (s.note && s.note.toLowerCase().includes(search));
+                return matchYear && matchSearch;
+            });
+
+            filtered.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Nessuna spesa registrata per il periodo selezionato.</td></tr>`;
+            } else {
+                body.innerHTML = filtered.map(s => {
+                    const isFatt = Boolean(s.isFattura);
+                    const badgeFattura = isFatt 
+                        ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Sì</span>`
+                        : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">No</span>`;
+                    
+                    const totaleFatturaDisplay = isFatt 
+                        ? `€ ${(invoiceTotalsByDate[s.data] || 0).toFixed(2)}`
+                        : `-`;
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3 font-semibold text-slate-700 whitespace-nowrap">${isFatt ? s.data : '-'}</td>
+                            <td class="p-3 text-center">${badgeFattura}</td>
+                            <td class="p-3 text-slate-500 whitespace-nowrap">${s.dataEvento || '-'}</td>
+                            <td class="p-3 font-medium text-slate-900">${s.scuderia}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">${s.dettaglio}</span></td>
+                            <td class="p-3 text-right text-slate-600 font-medium">${s.importo !== null && s.importo !== "" ? '€ ' + Number(s.importo).toFixed(2) : '-'}</td>
+                            <td class="p-3 text-right font-bold ${isFatt ? 'text-slate-900' : 'text-slate-400'}">${totaleFatturaDisplay}</td>
+                            <td class="p-3 text-slate-500 max-w-xs truncate">${s.note || '-'}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteSpesa(${s.id})" class="text-red-500 hover:text-red-700 font-bold">Elimina</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            updateKPIs(year);
+        }
+
+        function renderConcorsi() {
+            const body = document.getElementById('body-concorsi');
+            if (!body) return;
+            const year = document.getElementById('filterAnno').value;
+
+            let filtered = dataConcorsi.filter(c => {
+                return (year === "ALL") || (c.data && c.data.startsWith(year));
+            });
+
+            filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Nessun evento registrato per il periodo selezionato.</td></tr>`;
+            } else {
+                body.innerHTML = filtered.map(c => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-semibold text-slate-700 whitespace-nowrap">${c.data}</td>
+                        <td class="p-3 font-medium text-slate-900">${c.scuderia}</td>
+                        <td class="p-3 font-bold text-amber-800">${c.concorso}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold">Pos: ${c.pos !== null && c.pos !== "" ? c.pos : '-'}</span></td>
+                        <td class="p-3 text-center font-bold ${c.pen === 0 ? 'text-emerald-700' : 'text-red-600'}">${c.pen !== null && c.pen !== "" ? c.pen : '-'}</td>
+                        <td class="p-3 text-center text-slate-500">${c.tempo || '-'}</td>
+                        <td class="p-3 text-center text-slate-500">${c.perc || '-'}</td>
+                        <td class="p-3 text-slate-500 max-w-xs truncate">${c.note || '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteConcorso(${c.id})" class="text-red-500 hover:text-red-700 font-bold">Elimina</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            updateKPIs(year);
+        }
+
+        function renderTabelle() {
+            document.getElementById('list-categorie').innerHTML = dataCategorie.map((c, idx) => `
+                <li class="py-2 text-slate-700 flex justify-between items-center gap-2">
+                    <span class="flex-1">${c}</span>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="editCategoria(${idx})" class="text-blue-600 hover:text-blue-800 font-semibold">Modifica</button>
+                        <button onclick="deleteCategoria(${idx})" class="text-red-500 hover:text-red-700 font-semibold">Elimina</button>
+                    </div>
+                </li>
+            `).join('');
+
+            document.getElementById('list-scuderie').innerHTML = dataScuderie.map((s, idx) => `
+                <li class="py-2 text-slate-700 flex justify-between items-center gap-2">
+                    <span class="flex-1">${s}</span>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="editScuderia(${idx})" class="text-blue-600 hover:text-blue-800 font-semibold">Modifica</button>
+                        <button onclick="deleteScuderia(${idx})" class="text-red-500 hover:text-red-700 font-semibold">Elimina</button>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function updateKPIs(year) {
+            const targetYear = year === "ALL" ? "2026" : year;
+            document.getElementById('kpi-label-totale').innerText = `Totale Speso ${targetYear}`;
+
+            let total = 0;
+            dataSpese.forEach(s => {
+                if (s.data && s.data.startsWith(targetYear)) {
+                    const val = parseFloat(s.importo);
+                    if (!isNaN(val)) {
+                        total += val;
+                    }
+                }
+            });
+
+            let racesCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear)).length;
+            let clearsCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear) && (c.pen === 0 || c.pen === "0")).length;
+
+            document.getElementById('kpi-total').innerText = `€ ${total.toFixed(2)}`;
+            document.getElementById('kpi-avg').innerText = `€ ${(total / 12).toFixed(2)}`;
+            document.getElementById('kpi-races').innerText = racesCount;
+            document.getElementById('kpi-clears').innerText = clearsCount;
+        }
+
+        function populateSelects() {
+            const scuHTML = dataScuderie.map(s => `<option value="${s}">${s}</option>`).join('');
+            const catHTML = dataCategorie.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            document.getElementById('inputSpesaScuderia').innerHTML = scuHTML;
+            document.getElementById('inputSpesaCategoria').innerHTML = catHTML;
+            document.getElementById('inputConcScuderia').innerHTML = scuHTML;
+        }
+
+        function onToggleFattura() {
+            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
+            const inputData = document.getElementById('inputSpesaData');
+            const previewBox = document.getElementById('totaleFatturaPreviewBox');
+            
+            if (isFatt) {
+                inputData.disabled = false;
+                inputData.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                if (!inputData.value) {
+                    inputData.valueAsDate = new Date();
+                }
+                previewBox.classList.remove('opacity-40');
+                updateTotaleFatturaPreview();
+            } else {
+                inputData.value = "";
+                inputData.disabled = true;
+                inputData.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                previewBox.classList.add('opacity-40');
+                document.getElementById('inputSpesaTotalePreview').value = "Voce singola (no fattura)";
+            }
+        }
+
+        function updateTotaleFatturaPreview() {
+            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
+            if (!isFatt) return;
+
+            const dataStr = document.getElementById('inputSpesaData').value;
+            const existingSum = getTotaleFatturaByData(dataStr);
+            const currentImp = parseFloat(document.getElementById('inputSpesaImporto').value) || 0;
+            const newTotal = existingSum + currentImp;
+
+            document.getElementById('inputSpesaTotalePreview').value = `€ ${newTotal.toFixed(2)}`;
+        }
+
+        function checkCategoriaConcorso() {
+            const cat = document.getElementById('inputSpesaCategoria').value || "";
+            const dataEventoContainer = document.getElementById('dataEventoContainer');
+            if (cat.toLowerCase() === "concorso (iscr. gara in loco)") {
+                dataEventoContainer.classList.remove('hidden');
+            } else {
+                dataEventoContainer.classList.add('hidden');
+                document.getElementById('inputSpesaDataEvento').value = "";
+            }
+        }
+
+        function openModalSpesa() {
+            document.getElementById('expenseForm').reset();
+            document.getElementById('inputSpesaData').valueAsDate = new Date();
+            document.getElementById('inputSpesaIsFattura').checked = true;
+            checkCategoriaConcorso();
+            onToggleFattura();
+            document.getElementById('expenseModal').classList.remove('hidden');
+        }
+
+        function closeModalSpesa() {
+            document.getElementById('expenseModal').classList.add('hidden');
+        }
+
+        function openModalConcorso() {
+            document.getElementById('concorsoForm').reset();
+            document.getElementById('inputConcData').valueAsDate = new Date();
+            document.getElementById('concorsoModal').classList.remove('hidden');
+        }
+
+        function closeModalConcorso() {
+            document.getElementById('concorsoModal').classList.add('hidden');
+        }
+
+        function saveNewSpesa(e) {
+            e.preventDefault();
+            const cat = document.getElementById('inputSpesaCategoria').value;
+            const isConcorso = cat.toLowerCase() === "concorso (iscr. gara in loco)";
+            const dataEv = isConcorso ? document.getElementById('inputSpesaDataEvento').value : "";
+            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
+            const dataFatt = isFatt ? document.getElementById('inputSpesaData').value : "";
+
+            const impVal = document.getElementById('inputSpesaImporto').value;
+
+            const newObj = {
+                id: Date.now(),
+                data: dataFatt,
+                isFattura: isFatt,
+                dataEvento: dataEv,
+                scuderia: document.getElementById('inputSpesaScuderia').value,
+                dettaglio: cat,
+                importo: impVal !== "" ? parseFloat(impVal) : null,
+                note: document.getElementById('inputSpesaNote').value
+            };
+
+            dataSpese.unshift(newObj);
+            saveStorage();
+            renderSpese();
+            updateChart();
+            closeModalSpesa();
+        }
+
+        function saveNewConcorso(e) {
+            e.preventDefault();
+            const newConc = {
+                id: Date.now(),
+                data: document.getElementById('inputConcData').value,
+                scuderia: document.getElementById('inputConcScuderia').value,
+                concorso: document.getElementById('inputConcDettaglio').value,
+                pos: document.getElementById('inputConcPos').value !== "" ? parseInt(document.getElementById('inputConcPos').value) : null,
+                pen: document.getElementById('inputConcPen').value !== "" ? parseInt(document.getElementById('inputConcPen').value) : null,
+                tempo: document.getElementById('inputConcTempo').value,
+                perc: document.getElementById('inputConcPerc').value,
+                note: document.getElementById('inputConcNote').value
+            };
+
+            dataConcorsi.unshift(newConc);
+            saveStorage();
+            renderConcorsi();
+            closeModalConcorso();
+        }
+
+        function deleteSpesa(id) {
+            if (confirm("Sei sicuro di voler eliminare questa spesa?")) {
+                dataSpese = dataSpese.filter(s => s.id !== id);
+                saveStorage();
+                renderSpese();
+                updateChart();
+            }
+        }
+
+        function deleteConcorso(id) {
+            if (confirm("Sei sicuro di voler eliminare questo evento?")) {
+                dataConcorsi = dataConcorsi.filter(c => c.id !== id);
+                saveStorage();
+                renderConcorsi();
+            }
+        }
+
+        function addCategoriePrompt() {
+            const val = prompt("Inserisci la nuova categoria di spesa:");
+            if (val && val.trim()) {
+                dataCategorie.push(val.trim());
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function editCategoria(idx) {
+            const current = dataCategorie[idx];
+            const updated = prompt("Modifica categoria di spesa:", current);
+            if (updated !== null && updated.trim() !== "") {
+                dataCategorie[idx] = updated.trim();
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function deleteCategoria(idx) {
+            if (confirm(`Eliminare la categoria "${dataCategorie[idx]}"?`)) {
+                dataCategorie.splice(idx, 1);
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function addScuderiaPrompt() {
+            const val = prompt("Inserisci la nuova Scuderia / Località:");
+            if (val && val.trim()) {
+                dataScuderie.push(val.trim());
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function editScuderia(idx) {
+            const current = dataScuderie[idx];
+            const updated = prompt("Modifica Scuderia / Località:", current);
+            if (updated !== null && updated.trim() !== "") {
+                dataScuderie[idx] = updated.trim();
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function deleteScuderia(idx) {
+            if (confirm(`Eliminare "${dataScuderie[idx]}"?`)) {
+                dataScuderie.splice(idx, 1);
+                saveStorage();
+                populateSelects();
+                renderTabelle();
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            costChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€ ' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            if (!costChartInstance) return;
+
+            const selectedYearFilter = document.getElementById('chartFilterAnno').value;
+            let yearsToProcess = [];
+
+            if (selectedYearFilter === "ALL") {
+                let ySet = new Set();
+                dataSpese.forEach(s => {
+                    if (s.data && s.data.length >= 4) {
+                        ySet.add(s.data.substring(0, 4));
+                    }
+                });
+                yearsToProcess = Array.from(ySet).sort();
+                if (yearsToProcess.length === 0) yearsToProcess = ["2026"];
+            } else {
+                yearsToProcess = [selectedYearFilter];
+            }
+
+            const colors = [
+                { border: '#1b4332', bg: 'rgba(27, 67, 50, 0.1)' },
+                { border: '#d4af37', bg: 'rgba(212, 175, 55, 0.1)' },
+                { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+                { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+                { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' }
+            ];
+
+            let datasets = [];
+
+            yearsToProcess.forEach((yr, idx) => {
+                let monthlyTotals = new Array(12).fill(0);
+
+                dataSpese.forEach(s => {
+                    if (s.data && s.data.startsWith(yr)) {
+                        const parts = s.data.split('-');
+                        if (parts.length >= 2) {
+                            const mIdx = parseInt(parts[1], 10) - 1;
+                            const val = parseFloat(s.importo);
+                            if (mIdx >= 0 && mIdx < 12 && !isNaN(val)) {
+                                monthlyTotals[mIdx] += val;
+                            }
+                        }
+                    }
+                });
+
+                const col = colors[idx % colors.length];
+                datasets.push({
+                    label: `Anno ${yr}`,
+                    data: monthlyTotals,
+                    borderColor: col.border,
+                    backgroundColor: col.bg,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.2
+                });
+            });
+
+            costChartInstance.data.datasets = datasets;
+            costChartInstance.update();
+        }
+
+        function saveStorage() {
+            localStorage.setItem("spese_v12", JSON.stringify(dataSpese));
+            localStorage.setItem("conc_v12", JSON.stringify(dataConcorsi));
+            localStorage.setItem("cat_v12", JSON.stringify(dataCategorie));
+            localStorage.setItem("scu_v12", JSON.stringify(dataScuderie));
+        }
+
+        // =====================================================
+        // EQUIRESULTS - GESTIONE LINK ATLETA
+        // =====================================================
+
+        function caricaEquiresults() {
+            const input = document.getElementById("equiresults-url");
+            const frame = document.getElementById("equiresults-frame");
+            const link = document.getElementById("equiresults-open");
+
+            const url = input.value.trim();
+
+            if (!url) {
+                alert("Inserisci il link Equiresults dell'atleta.");
+                return;
+            }
+
+            if (!url.startsWith("https://equiresults.com/")) {
+                alert("Inserisci un link valido di Equiresults.");
+                return;
+            }
+
+            frame.src = url;
+            link.href = url;
+
+            localStorage.setItem("equiresultsAthleteUrl", url);
+        }
+
+        function initEquiresults() {
+            const savedUrl = localStorage.getItem("equiresultsAthleteUrl");
+
+            if (savedUrl) {
+                document.getElementById("equiresults-url").value = savedUrl;
+                document.getElementById("equiresults-frame").src = savedUrl;
+                document.getElementById("equiresults-open").href = savedUrl;
+            }
+        }
+
+        // =====================================================
+        // GENERAZIONE E PARSING WORKBOOK EXCEL (.XLSX) CONDIVISI
+        // =====================================================
+
+        function generaWorkbookExcel() {
+            const wb = XLSX.utils.book_new();
+
+            // 1. Foglio Spese
+            const speseRows = dataSpese.map(s => ({
+                ID: s.id,
+                Data_Fattura: s.data || "",
+                Fattura: s.isFattura ? "Sì" : "No",
+                Data_Evento: s.dataEvento || "",
+                Scuderia: s.scuderia || "",
+                Dettaglio: s.dettaglio || "",
+                Importo: s.importo !== null && s.importo !== "" ? Number(s.importo) : "",
+                Note: s.note || ""
+            }));
+            const wsSpese = XLSX.utils.json_to_sheet(speseRows.length > 0 ? speseRows : [{
+                ID: "", Data_Fattura: "", Fattura: "", Data_Evento: "", Scuderia: "", Dettaglio: "", Importo: "", Note: ""
+            }]);
+            XLSX.utils.book_append_sheet(wb, wsSpese, "Spese");
+
+            // 2. Foglio Concorsi
+            const concorsiRows = dataConcorsi.map(c => ({
+                ID: c.id,
+                Data: c.data || "",
+                Scuderia: c.scuderia || "",
+                Concorso: c.concorso || "",
+                Posizione: c.pos !== null && c.pos !== "" ? c.pos : "",
+                Penalita: c.pen !== null && c.pen !== "" ? c.pen : "",
+                Tempo: c.tempo || "",
+                Percentuale: c.perc || "",
+                Note: c.note || ""
+            }));
+            const wsConcorsi = XLSX.utils.json_to_sheet(concorsiRows.length > 0 ? concorsiRows : [{
+                ID: "", Data: "", Scuderia: "", Concorso: "", Posizione: "", Penalita: "", Tempo: "", Percentuale: "", Note: ""
+            }]);
+            XLSX.utils.book_append_sheet(wb, wsConcorsi, "Concorsi");
+
+            // 3. Foglio Tabelle (Categorie & Scuderie)
+            const maxLen = Math.max(dataCategorie.length, dataScuderie.length);
+            const tabelleRows = [];
+            for (let i = 0; i < maxLen; i++) {
+                tabelleRows.push({
+                    Categorie_Spesa: dataCategorie[i] || "",
+                    Scuderie_Circoli: dataScuderie[i] || ""
+                });
+            }
+            const wsTabelle = XLSX.utils.json_to_sheet(tabelleRows.length > 0 ? tabelleRows : [{
+                Categorie_Spesa: "", Scuderie_Circoli: ""
+            }]);
+            XLSX.utils.book_append_sheet(wb, wsTabelle, "Tabelle");
+
+            // 4. Foglio Configurazione
+            const configRows = [
+                { Chiave: "equiresultsAthleteUrl", Valore: localStorage.getItem("equiresultsAthleteUrl") || "" },
+                { Chiave: "dataBackup", Valore: new Date().toISOString() }
+            ];
+            const wsConfig = XLSX.utils.json_to_sheet(configRows);
+            XLSX.utils.book_append_sheet(wb, wsConfig, "Configurazione");
+
+            const wbArrayBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+            return new Blob([wbArrayBuffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            });
+        }
+
+        function importaDatiDaWorkbook(wb) {
+            // 1. Ripristino Spese
+            if (wb.Sheets["Spese"]) {
+                const rawSpese = XLSX.utils.sheet_to_json(wb.Sheets["Spese"], { defval: "" });
+                dataSpese = rawSpese
+                    .filter(r => r.Dettaglio !== "" || r.Scuderia !== "" || r.Importo !== "")
+                    .map((r, index) => {
+                        const isFatt = String(r.Fattura).toLowerCase() === "sì" || String(r.Fattura).toLowerCase() === "si" || r.Fattura === true;
+                        const imp = r.Importo !== "" && !isNaN(parseFloat(r.Importo)) ? parseFloat(r.Importo) : null;
+                        return {
+                            id: r.ID ? Number(r.ID) : (Date.now() + index),
+                            data: r.Data_Fattura ? String(r.Data_Fattura).trim() : "",
+                            isFattura: isFatt,
+                            dataEvento: r.Data_Evento ? String(r.Data_Evento).trim() : "",
+                            scuderia: r.Scuderia ? String(r.Scuderia).trim() : "",
+                            dettaglio: r.Dettaglio ? String(r.Dettaglio).trim() : "",
+                            importo: imp,
+                            note: r.Note ? String(r.Note).trim() : ""
+                        };
+                    });
+            }
+
+            // 2. Ripristino Concorsi
+            if (wb.Sheets["Concorsi"]) {
+                const rawConcorsi = XLSX.utils.sheet_to_json(wb.Sheets["Concorsi"], { defval: "" });
+                dataConcorsi = rawConcorsi
+                    .filter(r => r.Concorso !== "" || r.Data !== "")
+                    .map((r, index) => ({
+                        id: r.ID ? Number(r.ID) : (Date.now() + index),
+                        data: r.Data ? String(r.Data).trim() : "",
+                        scuderia: r.Scuderia ? String(r.Scuderia).trim() : "",
+                        concorso: r.Concorso ? String(r.Concorso).trim() : "",
+                        pos: r.Posizione !== "" && !isNaN(parseInt(r.Posizione)) ? parseInt(r.Posizione) : null,
+                        pen: r.Penalita !== "" && !isNaN(parseInt(r.Penalita)) ? parseInt(r.Penalita) : null,
+                        tempo: r.Tempo ? String(r.Tempo).trim() : "",
+                        perc: r.Percentuale ? String(r.Percentuale).trim() : "",
+                        note: r.Note ? String(r.Note).trim() : ""
+                    }));
+            }
+
+            // 3. Ripristino Tabelle (Categorie e Scuderie)
+            if (wb.Sheets["Tabelle"]) {
+                const rawTabelle = XLSX.utils.sheet_to_json(wb.Sheets["Tabelle"], { defval: "" });
+                const newCat = rawTabelle.map(r => String(r.Categorie_Spesa || "").trim()).filter(Boolean);
+                const newScu = rawTabelle.map(r => String(r.Scuderie_Circoli || "").trim()).filter(Boolean);
+                if (newCat.length > 0) dataCategorie = newCat;
+                if (newScu.length > 0) dataScuderie = newScu;
+            }
+
+            // 4. Ripristino Configurazione (Link Equiresults)
+            if (wb.Sheets["Configurazione"]) {
+                const rawConfig = XLSX.utils.sheet_to_json(wb.Sheets["Configurazione"], { defval: "" });
+                const eqRow = rawConfig.find(r => r.Chiave === "equiresultsAthleteUrl");
+                if (eqRow && eqRow.Valore) {
+                    localStorage.setItem("equiresultsAthleteUrl", String(eqRow.Valore).trim());
+                    initEquiresults();
+                }
+            }
+
+            saveStorage();
+            populateSelects();
+            renderSpese();
+            renderConcorsi();
+            renderTabelle();
+            updateChart();
+        }
+
+        // =====================================================
+        // BACKUP & RIPRISTINO LOCALE SU FILE .XLSX
+        // =====================================================
+
+        function mostraMessaggioBox(elementId, message, type) {
+            const messageBox = document.getElementById(elementId);
+            if (!messageBox) return;
+
+            messageBox.innerText = message;
+            messageBox.classList.remove(
+                "hidden",
+                "bg-emerald-50", "text-emerald-800", "border", "border-emerald-200",
+                "bg-red-50", "text-red-700", "border-red-200",
+                "bg-blue-50", "text-blue-700", "border-blue-200"
+            );
+
+            if (type === "success") {
+                messageBox.classList.add("bg-emerald-50", "text-emerald-800", "border", "border-emerald-200");
+            } else if (type === "error") {
+                messageBox.classList.add("bg-red-50", "text-red-700", "border", "border-red-200");
+            } else {
+                messageBox.classList.add("bg-blue-50", "text-blue-700", "border", "border-blue-200");
+            }
+        }
+
+        function scaricaBackupLocale() {
+            try {
+                const blob = generaWorkbookExcel();
+                const url = URL.createObjectURL(blob);
+                const oggi = new Date().toISOString().slice(0, 10);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Equitazione_Backup_${oggi}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                mostraMessaggioBox(
+                    "local-message",
+                    `✅ File Excel scaricato correttamente (${dataSpese.length} spese esportate).`,
+                    "success"
+                );
+            } catch (err) {
+                mostraMessaggioBox("local-message", "❌ Errore durante l'esportazione: " + err.message, "error");
+            }
+        }
+
+        function caricaBackupLocale(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm(`Vuoi importare i dati dal file "${file.name}"? I dati attualmente salvati nel browser verranno sovrascritti.`)) {
+                event.target.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: "array" });
+
+                    if (!wb.Sheets["Spese"] && !wb.Sheets["Tabelle"]) {
+                        throw new Error("Il file selezionato non sembra un backup valido di questa applicazione.");
+                    }
+
+                    importaDatiDaWorkbook(wb);
+
+                    mostraMessaggioBox(
+                        "local-message",
+                        `✅ Ripristino completato! Caricate ${dataSpese.length} spese, ${dataCategorie.length} categorie e ${dataScuderie.length} scuderie.`,
+                        "success"
+                    );
+                } catch (err) {
+                    mostraMessaggioBox("local-message", "❌ Errore durante la lettura del file: " + err.message, "error");
+                } finally {
+                    event.target.value = "";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // =====================================================
+        // GOOGLE DRIVE - CONFIGURAZIONE, BACKUP & RIPRISTINO XLSX
+        // =====================================================
+
+        let driveTokenClient = null;
+        let driveAccessToken = null;
+
+        function initDriveBackup() {
+            const inputPath = document.getElementById("drive-backup-path");
+            if (inputPath) {
+                const savedPath = localStorage.getItem("googleDriveBackupPath");
+                if (savedPath) {
+                    inputPath.value = savedPath;
+                } else {
+                    inputPath.value = "DRIVE/Equitazione/Equitazione_Backup.xlsx";
+                    localStorage.setItem("googleDriveBackupPath", inputPath.value);
+                }
+            }
+            aggiornaStatoUIDrive(false);
+        }
+
+        function salvaPercorsoBackupDrive() {
+            const inputPath = document.getElementById("drive-backup-path");
+            const path = normalizzaPercorsoDrive(inputPath.value);
+
+            if (!path) {
+                mostraMessaggioDrive("Indicare un percorso valido per il file di backup.", "error");
+                return;
+            }
+
+            if (!path.toLowerCase().endsWith(".xlsx")) {
+                mostraMessaggioDrive("Il nome del file di backup deve terminare con .xlsx", "error");
+                return;
+            }
+
+            inputPath.value = path;
+            localStorage.setItem("googleDriveBackupPath", path);
+            mostraMessaggioDrive("Percorso del backup memorizzato correttamente.", "success");
+        }
+
+        function normalizzaPercorsoDrive(path) {
+            if (!path) return "";
+            path = path.trim().replaceAll("\", "/");
+            while (path.includes("//")) {
+                path = path.replaceAll("//", "/");
+            }
+            if (path.startsWith("/")) path = path.substring(1);
+            if (path.endsWith("/")) path = path.substring(0, path.length - 1);
+            if (!path.toUpperCase().startsWith("DRIVE/")) {
+                path = "DRIVE/" + path;
+            }
+            return path;
+        }
+
+        function aggiornaStatoUIDrive(isConnected) {
+            const statusBadge = document.getElementById("drive-status");
+            const btnConnect = document.getElementById("drive-connect-button");
+            const btnDisconnect = document.getElementById("drive-disconnect-button");
+            const btnBackup = document.getElementById("drive-backup-button");
+            const btnRestore = document.getElementById("drive-restore-button");
+
+            if (isConnected) {
+                statusBadge.innerText = "● Collegato";
+                statusBadge.className = "px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-[10px] font-semibold whitespace-nowrap";
+                btnConnect.classList.add("hidden");
+                btnDisconnect.classList.remove("hidden");
+
+                btnBackup.disabled = false;
+                btnBackup.className = "px-4 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800 shadow transition cursor-pointer";
+
+                btnRestore.disabled = false;
+                btnRestore.className = "px-4 py-2 bg-gold text-slate-900 font-bold text-xs rounded-lg hover:bg-yellow-400 shadow transition cursor-pointer";
+            } else {
+                statusBadge.innerText = "● Non collegato";
+                statusBadge.className = "px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-[10px] font-semibold whitespace-nowrap";
+                btnConnect.classList.remove("hidden");
+                btnDisconnect.classList.add("hidden");
+
+                btnBackup.disabled = true;
+                btnBackup.className = "px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition";
+
+                btnRestore.disabled = true;
+                btnRestore.className = "px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition";
+            }
+        }
+
+        function mostraMessaggioDrive(message, type) {
+            mostraMessaggioBox("drive-message", message, type);
+        }
+
+        function collegaGoogleDrive() {
+            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes("INSERISCI_QUI")) {
+                mostraMessaggioDrive(
+                    "⚠️ Configurazione mancante: l'amministratore dell'app deve inserire il GOOGLE_CLIENT_ID nel codice sorgente.",
+                    "error"
+                );
+                return;
+            }
+
+            if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) {
+                mostraMessaggioDrive("Servizio Google Identity non ancora pronto. Riprova tra un istante.", "error");
+                return;
+            }
+
+            try {
+                if (!driveTokenClient) {
+                    driveTokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: GOOGLE_CLIENT_ID,
+                        scope: DRIVE_SCOPES,
+                        callback: (tokenResponse) => {
+                            if (tokenResponse.error) {
+                                mostraMessaggioDrive("Errore autenticazione Google: " + tokenResponse.error, "error");
+                                return;
+                            }
+                            driveAccessToken = tokenResponse.access_token;
+                            aggiornaStatoUIDrive(true);
+                            mostraMessaggioDrive("Collegamento al tuo Google Drive effettuato con successo!", "success");
+                        }
+                    });
+                }
+                driveTokenClient.requestAccessToken({ prompt: "" });
+            } catch (err) {
+                mostraMessaggioDrive("Impossibile avviare l'autenticazione: " + err.message, "error");
+            }
+        }
+
+        function scollegaGoogleDrive() {
+            if (driveAccessToken && typeof google !== "undefined" && google.accounts && google.accounts.oauth2) {
+                google.accounts.oauth2.revoke(driveAccessToken, () => {});
+            }
+            driveAccessToken = null;
+            aggiornaStatoUIDrive(false);
+            mostraMessaggioDrive("Disconnesso da Google Drive.", "info");
+        }
+
+        async function driveFetch(url, options = {}) {
+            if (!driveAccessToken) {
+                throw new Error("Sessione non attiva. Accedi nuovamente con Google Drive.");
+            }
+            const headers = new Headers(options.headers || {});
+            headers.set("Authorization", `Bearer ${driveAccessToken}`);
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                driveAccessToken = null;
+                aggiornaStatoUIDrive(false);
+                throw new Error("Sessione scaduta. Clicca su 'Accedi con Google Drive' per rinnovarla.");
+            }
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Errore API Drive (${response.status}): ${errText}`);
+            }
+            return response;
+        }
+
+        async function trovaOCreaCartellaDrive(nomeCartella, parentId = "root", creaSeMancante = true) {
+            const safeName = nomeCartella.replace(/'/g, "\'");
+            const q = `name='${safeName}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`;
+            const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`;
+
+            const res = await driveFetch(url);
+            const data = await res.json();
+
+            if (data.files && data.files.length > 0) {
+                return data.files[0].id;
+            }
+
+            if (!creaSeMancante) {
+                return null;
+            }
+
+            const createRes = await driveFetch("https://www.googleapis.com/drive/v3/files", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: nomeCartella,
+                    mimeType: "application/vnd.google-apps.folder",
+                    parents: [parentId]
+                })
+            });
+            const created = await createRes.json();
+            return created.id;
+        }
+
+        async function risolviPercorsoDrive(percorsoCompleto, creaCartelleMancanti = true) {
+            const norm = normalizzaPercorsoDrive(percorsoCompleto);
+            const relative = norm.replace(/^DRIVE\//i, "");
+            const segments = relative.split("/").filter(Boolean);
+
+            if (segments.length === 0 || !segments[segments.length - 1].toLowerCase().endsWith(".xlsx")) {
+                throw new Error("Il percorso deve terminare con un nome file .xlsx valido.");
+            }
+
+            const fileName = segments.pop();
+            let currentParentId = "root";
+
+            for (const folderName of segments) {
+                currentParentId = await trovaOCreaCartellaDrive(folderName, currentParentId, creaCartelleMancanti);
+                if (!currentParentId) {
+                    return { folderId: null, fileId: null, fileName };
+                }
+            }
+
+            const safeFileName = fileName.replace(/'/g, "\'");
+            const qFile = `name='${safeFileName}' and '${currentParentId}' in parents and trashed=false`;
+            const fileSearchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(qFile)}&fields=files(id,name,modifiedTime)&spaces=drive`;
+
+            const fileRes = await driveFetch(fileSearchUrl);
+            const fileData = await fileRes.json();
+            const existingFileId = (fileData.files && fileData.files.length > 0) ? fileData.files[0].id : null;
+
+            return { folderId: currentParentId, fileId: existingFileId, fileName };
+        }
+
+        async function eseguiBackupDrive() {
+            if (!driveAccessToken) {
+                mostraMessaggioDrive("Accedi prima con Google Drive.", "error");
+                return;
+            }
+
+            const inputPath = document.getElementById("drive-backup-path");
+            const rawPath = normalizzaPercorsoDrive(inputPath.value);
+            if (!rawPath || !rawPath.toLowerCase().endsWith(".xlsx")) {
+                mostraMessaggioDrive("Specifica un percorso valido terminante in .xlsx.", "error");
+                return;
+            }
+            inputPath.value = rawPath;
+            localStorage.setItem("googleDriveBackupPath", rawPath);
+
+            try {
+                mostraMessaggioDrive("⏳ Salvataggio backup su Google Drive in corso...", "info");
+
+                const { folderId, fileId, fileName } = await risolviPercorsoDrive(rawPath, true);
+                const excelBlob = generaWorkbookExcel();
+
+                const metadata = {
+                    name: fileName,
+                    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                };
+                if (!fileId) {
+                    metadata.parents = [folderId];
+                }
+
+                const form = new FormData();
+                form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+                form.append("file", excelBlob);
+
+                const uploadUrl = fileId
+                    ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
+                    : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+
+                const method = fileId ? "PATCH" : "POST";
+
+                await driveFetch(uploadUrl, {
+                    method: method,
+                    body: form
+                });
+
+                const ora = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                mostraMessaggioDrive(
+                    `✅ Backup completato alle ${ora} (${dataSpese.length} spese salvate in "${rawPath}").`,
+                    "success"
+                );
+            } catch (err) {
+                mostraMessaggioDrive("❌ Errore durante il backup: " + err.message, "error");
+            }
+        }
+
+        async function ripristinaBackupDrive() {
+            if (!driveAccessToken) {
+                mostraMessaggioDrive("Accedi prima con Google Drive.", "error");
+                return;
+            }
+
+            const inputPath = document.getElementById("drive-backup-path");
+            const rawPath = normalizzaPercorsoDrive(inputPath.value);
+            if (!rawPath || !rawPath.toLowerCase().endsWith(".xlsx")) {
+                mostraMessaggioDrive("Specifica un percorso valido terminante in .xlsx.", "error");
+                return;
+            }
+
+            if (!confirm(`Vuoi davvero ripristinare i dati dal file "${rawPath}"? I dati attualmente presenti nel browser verranno sovrascritti.`)) {
+                return;
+            }
+
+            try {
+                mostraMessaggioDrive("⏳ Ricerca e download del backup da Google Drive...", "info");
+
+                const { fileId } = await risolviPercorsoDrive(rawPath, false);
+                if (!fileId) {
+                    mostraMessaggioDrive(`❌ File di backup non trovato al percorso "${rawPath}".`, "error");
+                    return;
+                }
+
+                const downloadRes = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+                const arrayBuffer = await downloadRes.arrayBuffer();
+                const wb = XLSX.read(arrayBuffer, { type: "array" });
+
+                importaDatiDaWorkbook(wb);
+
+                mostraMessaggioDrive(
+                    `✅ Ripristino completato! Caricate ${dataSpese.length} spese, ${dataCategorie.length} categorie e ${dataScuderie.length} scuderie.`,
+                    "success"
+                );
+            } catch (err) {
+                mostraMessaggioDrive("❌ Errore durante il ripristino: " + err.message, "error");
+            }
+        }
+
+        window.onload = function() {
+            initApp();
+            initEquiresults();
+            initDriveBackup();
+        };
+
+    </script>
+</body>
+</html>
