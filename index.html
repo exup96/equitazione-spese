@@ -1343,7 +1343,7 @@
 
         function normalizzaPercorsoDrive(path) {
             if (!path) return "";
-            path = path.trim().replaceAll("\", "/");
+            path = path.trim().replaceAll("\\", "/");
             while (path.includes("//")) {
                 path = path.replaceAll("//", "/");
             }
