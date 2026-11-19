@@ -1019,27 +1019,59 @@
             document.getElementById('inputConcScuderia').innerHTML = scuHTML;
         }
 
-        function onToggleFattura() {
-            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
-            const inputData = document.getElementById('inputSpesaData');
-            const previewBox = document.getElementById('totaleFatturaPreviewBox');
-            
-            if (isFatt) {
-                inputData.disabled = false;
-                inputData.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
-                if (!inputData.value) {
-                    inputData.valueAsDate = new Date();
-                }
-                previewBox.classList.remove('opacity-40');
-                updateTotaleFatturaPreview();
-            } else {
-                inputData.value = "";
-                inputData.disabled = true;
-                inputData.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
-                previewBox.classList.add('opacity-40');
-                document.getElementById('inputSpesaTotalePreview').value = "Voce singola (no fattura)";
-            }
+function onToggleFattura() {
+    const isFatt = document.getElementById('inputSpesaIsFattura').checked;
+    const inputData = document.getElementById('inputSpesaData');
+    const previewBox = document.getElementById('totaleFatturaPreviewBox');
+    const dataEventoContainer = document.getElementById('dataEventoContainer');
+    const inputDataEvento = document.getElementById('inputSpesaDataEvento');
+
+    if (isFatt) {
+
+        // FATTURA: abilita Data Fattura
+        inputData.disabled = false;
+        inputData.classList.remove(
+            'bg-slate-100',
+            'cursor-not-allowed',
+            'text-slate-400'
+        );
+
+        if (!inputData.value) {
+            inputData.valueAsDate = new Date();
         }
+
+        previewBox.classList.remove('opacity-40');
+        updateTotaleFatturaPreview();
+
+        // La visibilità di Data Evento dipende dalla categoria
+        checkCategoriaConcorso();
+
+    } else {
+
+        // NON FATTURA: Data Fattura non serve
+        inputData.value = "";
+        inputData.disabled = true;
+
+        inputData.classList.add(
+            'bg-slate-100',
+            'cursor-not-allowed',
+            'text-slate-400'
+        );
+
+        previewBox.classList.add('opacity-40');
+
+        document.getElementById('inputSpesaTotalePreview').value =
+            "Voce singola (no fattura)";
+
+        // NON FATTURA: mostra sempre Data Evento
+        dataEventoContainer.classList.remove('hidden');
+
+        // Propone automaticamente la data odierna
+        if (!inputDataEvento.value) {
+            inputDataEvento.valueAsDate = new Date();
+        }
+    }
+}
 
         function updateTotaleFatturaPreview() {
             const isFatt = document.getElementById('inputSpesaIsFattura').checked;
@@ -1053,16 +1085,36 @@
             document.getElementById('inputSpesaTotalePreview').value = `€ ${newTotal.toFixed(2)}`;
         }
 
-        function checkCategoriaConcorso() {
-            const cat = document.getElementById('inputSpesaCategoria').value || "";
-            const dataEventoContainer = document.getElementById('dataEventoContainer');
-            if (cat.toLowerCase() === "concorso (iscr. gara in loco)") {
-                dataEventoContainer.classList.remove('hidden');
-            } else {
-                dataEventoContainer.classList.add('hidden');
-                document.getElementById('inputSpesaDataEvento').value = "";
-            }
+function checkCategoriaConcorso() {
+    const cat = document.getElementById('inputSpesaCategoria').value || "";
+    const isFatt = document.getElementById('inputSpesaIsFattura').checked;
+
+    const dataEventoContainer =
+        document.getElementById('dataEventoContainer');
+
+    const inputDataEvento =
+        document.getElementById('inputSpesaDataEvento');
+
+    const isConcorso =
+        cat.toLowerCase() === "concorso (iscr. gara in loco)";
+
+    // Data Evento deve essere visibile:
+    // 1. se NON è una fattura
+    // 2. oppure se la categoria è Concorso
+    if (!isFatt || isConcorso) {
+
+        dataEventoContainer.classList.remove('hidden');
+
+        if (!inputDataEvento.value) {
+            inputDataEvento.valueAsDate = new Date();
         }
+
+    } else {
+
+        dataEventoContainer.classList.add('hidden');
+        inputDataEvento.value = "";
+    }
+}
 
         function openModalSpesa() {
             document.getElementById('expenseForm').reset();
@@ -1089,11 +1141,23 @@
 
         function saveNewSpesa(e) {
             e.preventDefault();
-            const cat = document.getElementById('inputSpesaCategoria').value;
-            const isConcorso = cat.toLowerCase() === "concorso (iscr. gara in loco)";
-            const dataEv = isConcorso ? document.getElementById('inputSpesaDataEvento').value : "";
-            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
-            const dataFatt = isFatt ? document.getElementById('inputSpesaData').value : "";
+const cat = document.getElementById('inputSpesaCategoria').value;
+
+const isConcorso =
+    cat.toLowerCase() === "concorso (iscr. gara in loco)";
+
+const isFatt =
+    document.getElementById('inputSpesaIsFattura').checked;
+
+const dataFatt =
+    isFatt
+        ? document.getElementById('inputSpesaData').value
+        : "";
+
+const dataEv =
+    (!isFatt || isConcorso)
+        ? document.getElementById('inputSpesaDataEvento').value
+        : "";
 
             const impVal = document.getElementById('inputSpesaImporto').value;
 
