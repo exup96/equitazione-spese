@@ -888,7 +888,8 @@
             });
 
             let filtered = dataSpese.filter(s => {
-                const matchYear = (year === "ALL") || (s.data && s.data.startsWith(year));
+                const dataRiferimento = s.isFattura ? s.data : s.dataEvento;
+                const matchYear = (year === "ALL") || (dataRiferimento && dataRiferimento.startsWith(year));
                 const matchSearch = !search || 
                     (s.scuderia && s.scuderia.toLowerCase().includes(search)) || 
                     (s.dettaglio && s.dettaglio.toLowerCase().includes(search)) || 
@@ -896,7 +897,14 @@
                 return matchYear && matchSearch;
             });
 
-            filtered.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+            filtered.sort((a, b) => {
+
+            const dataA = a.isFattura ? a.data : a.dataEvento;
+            const dataB = b.isFattura ? b.data : b.dataEvento;
+
+            return new Date(dataB || 0) - new Date(dataA || 0);
+
+            });
 
             if (filtered.length === 0) {
                 body.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Nessuna spesa registrata per il periodo selezionato.</td></tr>`;
@@ -993,13 +1001,20 @@
 
             let total = 0;
             dataSpese.forEach(s => {
-                if (s.data && s.data.startsWith(targetYear)) {
-                    const val = parseFloat(s.importo);
-                    if (!isNaN(val)) {
-                        total += val;
-                    }
-                }
-            });
+
+            const dataRiferimento =
+                s.isFattura ? s.data : s.dataEvento;
+
+            if (dataRiferimento && dataRiferimento.startsWith(targetYear)) {
+
+            const val = parseFloat(s.importo);
+
+            if (!isNaN(val)) {
+                total += val;
+            }
+        }
+});
+
 
             let racesCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear)).length;
             let clearsCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear) && (c.pen === 0 || c.pen === "0")).length;
@@ -1350,8 +1365,13 @@ const dataEv =
                 let monthlyTotals = new Array(12).fill(0);
 
                 dataSpese.forEach(s => {
-                    if (s.data && s.data.startsWith(yr)) {
-                        const parts = s.data.split('-');
+
+                    const dataRiferimento =
+                        s.isFattura ? s.data : s.dataEvento;
+
+                    if (dataRiferimento && dataRiferimento.startsWith(yr)) {
+
+                        const parts = dataRiferimento.split('-');
                         if (parts.length >= 2) {
                             const mIdx = parseInt(parts[1], 10) - 1;
                             const val = parseFloat(s.importo);
