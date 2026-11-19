@@ -500,6 +500,300 @@
         </div>
     </div>
 
+<!-- =====================================================
+     MODALE GUIDA UTENTE
+===================================================== -->
+
+<div
+    id="guidaModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4"
+>
+
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col">
+
+        <!-- Intestazione -->
+        <div class="bg-racing-green text-white px-6 py-4 flex justify-between items-center rounded-t-2xl">
+
+            <div>
+                <h2 class="font-bold text-lg">
+                    🐴 Guida Equitazione
+                </h2>
+
+                <p class="text-xs text-emerald-200 mt-1">
+                    Gestione Spese, Concorsi e Backup
+                </p>
+            </div>
+
+            <button
+                type="button"
+                onclick="chiudiGuida()"
+                class="text-emerald-100 hover:text-white text-2xl font-bold"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <!-- Contenuto -->
+        <div class="p-6 overflow-y-auto text-sm text-slate-700 space-y-7">
+
+
+            <!-- PRIMO UTILIZZO -->
+
+            <section>
+
+                <h3 class="font-bold text-racing-green text-base mb-3">
+                    🚀 Primo utilizzo
+                </h3>
+
+                <p class="mb-3">
+                    Al primo accesso l'applicazione è intenzionalmente vuota.
+                    Configura i tuoi dati prima di iniziare a registrare le spese.
+                </p>
+
+                <ol class="list-decimal ml-6 space-y-2">
+
+                    <li>
+                        Apri <strong>⚙️ Tabelle & Backup</strong>.
+                    </li>
+
+                    <li>
+                        Inserisci le voci desiderate in
+                        <strong>Categorie Spesa</strong> utilizzando
+                        <strong>+ Nuova Categoria</strong>.
+                    </li>
+
+                    <li>
+                        Inserisci le strutture utilizzate in
+                        <strong>Scuderie & Circoli</strong> tramite
+                        <strong>+ Nuova Scuderia/Località</strong>.
+                    </li>
+
+                    <li>
+                        Apri <strong>💳 Registro Spese</strong>
+                        e inizia a registrare i movimenti.
+                    </li>
+
+                    <li>
+                        Se desiderato, configura il collegamento dell'atleta
+                        nella sezione <strong>🏆 Storico Concorsi</strong>.
+                    </li>
+
+                    <li>
+                        Torna in <strong>⚙️ Tabelle & Backup</strong>,
+                        accedi a Google Drive e premi
+                        <strong>Salva su Drive</strong>.
+                    </li>
+
+                </ol>
+
+            </section>
+
+
+            <!-- ACCESSI SUCCESSIVI -->
+
+            <section class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+
+                <h3 class="font-bold text-emerald-900 text-base mb-2">
+                    🔄 Accessi successivi
+                </h3>
+
+                <p>
+                    Apri <strong>⚙️ Tabelle & Backup</strong> e seleziona
+                    <strong>Accedi con Google Drive</strong>.
+                </p>
+
+                <p class="mt-2">
+                    Dopo l'accesso l'applicazione cerca il backup personale
+                    e ripristina automaticamente i dati salvati in precedenza.
+                </p>
+
+            </section>
+
+
+            <!-- REGISTRO SPESE -->
+
+            <section>
+
+                <h3 class="font-bold text-racing-green text-base mb-2">
+                    💳 Registro Spese
+                </h3>
+
+                <p>
+                    Utilizza <strong>+ Registra Nuova Spesa / Movimento</strong>
+                    per inserire una nuova voce.
+                </p>
+
+                <p class="mt-2">
+                    Categorie e Scuderie disponibili derivano dalle tabelle
+                    configurate dall'utente.
+                </p>
+
+            </section>
+
+
+            <!-- STORICO CONCORSI -->
+
+<section>
+
+    <h3 class="font-bold text-racing-green text-base mb-2">
+        🏆 Storico Concorsi
+    </h3>
+
+    <p>
+        Per collegare i risultati ufficiali dell'atleta tramite Equiresults:
+    </p>
+
+    <ol class="list-decimal ml-6 mt-3 space-y-2">
+
+        <li>
+            Apri il sito <strong>Equiresults</strong>.
+        </li>
+
+        <li>
+            Seleziona <strong>Banca Dati</strong> → <strong>Cavalieri</strong>.
+        </li>
+
+        <li>
+            Inserisci il <strong>Nome</strong> oppure il
+            <strong>Cognome</strong> dell'atleta.
+        </li>
+
+        <li>
+            Seleziona l'atleta desiderato dall'elenco dei risultati.
+        </li>
+
+        <li>
+            Copia l'indirizzo della pagina dell'atleta dalla barra
+            degli indirizzi del browser.
+        </li>
+
+    </ol>
+
+    <p class="mt-3">
+        Il link da inserire nell'applicazione ha normalmente questo formato:
+    </p>
+
+    <div class="bg-slate-100 rounded-lg px-4 py-3 font-mono text-xs mt-2">
+        https://equiresults.com/rider/0000000
+    </div>
+
+    <p class="text-xs text-slate-500 mt-2">
+        Le cifre finali al posto di <strong>0000000</strong>
+        rappresentano l'identificativo specifico dell'atleta.
+    </p>
+
+    <p class="mt-3">
+        Torna quindi alla sezione <strong>🏆 Storico Concorsi</strong>,
+        incolla il link nel campo dedicato e premi <strong>Carica</strong>.
+    </p>
+
+</section>
+
+
+            <!-- BACKUP -->
+
+            <section>
+
+                <h3 class="font-bold text-racing-green text-base mb-3">
+                    ☁️ Backup Google Drive
+                </h3>
+
+                <p>
+                    Il percorso può comprendere una o più sottocartelle.
+                </p>
+
+                <div class="bg-slate-100 rounded-lg px-4 py-3 font-mono text-xs mt-3">
+
+                    DRIVE/Equitazione/Equitazione_Backup.xlsx
+
+                </div>
+
+                <ul class="list-disc ml-6 mt-4 space-y-2">
+
+                    <li>
+                        <strong>Salva su Drive</strong> aggiorna il backup
+                        con i dati correnti.
+                    </li>
+
+                    <li>
+                        <strong>Ripristina da Drive</strong> permette di
+                        ricaricare manualmente il backup.
+                    </li>
+
+                    <li>
+                        Il backup locale permette anche di scaricare
+                        direttamente una copia <strong>.xlsx</strong>
+                        sul dispositivo.
+                    </li>
+
+                </ul>
+
+            </section>
+
+
+            <!-- SICUREZZA -->
+
+            <section class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+
+                <h3 class="font-bold text-blue-900 text-base mb-2">
+                    🔐 Privacy e sicurezza
+                </h3>
+
+                <p>
+                    Il sito pubblico non contiene i dati personali dell'utente.
+                    Informazioni, spese e tabelle vengono inserite dall'utente
+                    oppure recuperate dal relativo backup.
+                </p>
+
+                <p class="mt-2">
+                    L'accesso a Google Drive utilizza l'autenticazione Google.
+                    La password dell'account Google
+                    <strong>non viene richiesta né memorizzata dall'applicazione</strong>.
+                </p>
+
+            </section>
+
+
+            <!-- SUGGERIMENTO -->
+
+            <section class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+
+                <h3 class="font-bold text-amber-900 mb-2">
+                    💡 Suggerimento
+                </h3>
+
+                <p>
+                    Dopo aver aggiunto o modificato spese, categorie,
+                    scuderie o configurazioni, esegui
+                    <strong>Salva su Drive</strong> per mantenere aggiornato
+                    il backup.
+                </p>
+
+            </section>
+
+        </div>
+
+
+        <!-- Footer -->
+
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end rounded-b-2xl">
+
+            <button
+                type="button"
+                onclick="chiudiGuida()"
+                class="px-5 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800"
+            >
+                Chiudi
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+    
     <script>
         // =========================================================================
         // CONFIGURAZIONE PUBBLICA GOOGLE OAUTH 2.0
@@ -1591,6 +1885,22 @@ await ripristinaBackupDrive(true);
             }
         }
 
+function apriGuida() {
+    const modal = document.getElementById("guidaModal");
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+
+function chiudiGuida() {
+    const modal = document.getElementById("guidaModal");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+`
+        
         window.onload = function() {
             initApp();
             initEquiresults();
