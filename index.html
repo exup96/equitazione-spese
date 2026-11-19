@@ -509,43 +509,8 @@
         const GOOGLE_CLIENT_ID = "491259982162-al4qnvqu5hi9h0udqhlco1p12umf20a7.apps.googleusercontent.com";
         const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive.file";
 
-        var defaultCategorie = [
-            "Rimborso spese servizi esclusivi per gli associati mezza fida Melody",
-            "Carote",
-            "Ferratura",
-            "Tosatura",
-            "Trasferta istruttore",
-            "Trasferta Groom",
-            "Rimborso spese Trasporti del Belevedere",
-            "Rimborso spese trasporto Van Capinera",
-            "Rimborso trasporto (vett. non spec.)",
-            "Spese di segreteria",
-            "Spese medicina veterinaria Coggin",
-            "Spese medicina veterinaria dentista",
-            "Spese medicina veterinaria vaccino anti influenzale",
-            "Spese medicina veterinaria vaccinazione West Nile",
-            "Spese medicina veterinaria Vermifugo",
-            "Concorso (iscr. gara in loco)",
-            "Campus estivo",
-            "Stage Scuola",
-            "Iscrizione annuale",
-            "Lezioni",
-            "Rimborso spese servizi esclusivi per gli associati mezza fida Jolene",
-            "Non dettagliato"
-        ];
-
-        var defaultScuderie = [
-            "ASD Sceree (Bodio Lomnago)",
-            "ETREA (Busto Arsizio)",
-            "Le Ginestre (Buscate)",
-            "San Martino",
-            "Tenuta Bornago, Cameri (Caccia alla volpe)",
-            "Equieffe Equestrian Center (Gorla)",
-            "Garzonera Horser Yard asd",
-            "Scuderia della Capinera",
-            "Scuderie San Giorgio (Verolanuova)"
-        ];
-
+        var defaultCategorie = [];
+        var defaultScuderie = [];
         var dataSpese = [];
         var dataConcorsi = [];
         var dataCategorie = [];
@@ -560,8 +525,8 @@
 
             dataSpese = savedExp ? JSON.parse(savedExp) : [];
             dataConcorsi = savedConc ? JSON.parse(savedConc) : [];
-            dataCategorie = savedCat ? JSON.parse(savedCat) : defaultCategorie;
-            dataScuderie = savedScu ? JSON.parse(savedScu) : defaultScuderie;
+            dataCategorie = savedCat ? JSON.parse(savedCat) : [];
+            dataScuderie = savedScu ? JSON.parse(savedScu) : [];
 
             populateSelects();
             renderSpese();
@@ -1196,8 +1161,8 @@
                 const rawTabelle = XLSX.utils.sheet_to_json(wb.Sheets["Tabelle"], { defval: "" });
                 const newCat = rawTabelle.map(r => String(r.Categorie_Spesa || "").trim()).filter(Boolean);
                 const newScu = rawTabelle.map(r => String(r.Scuderie_Circoli || "").trim()).filter(Boolean);
-                if (newCat.length > 0) dataCategorie = newCat;
-                if (newScu.length > 0) dataScuderie = newScu;
+                dataCategorie = newCat;
+                dataScuderie = newScu;
             }
 
             // 4. Ripristino Configurazione (Link Equiresults)
@@ -1410,14 +1375,20 @@
                     driveTokenClient = google.accounts.oauth2.initTokenClient({
                         client_id: GOOGLE_CLIENT_ID,
                         scope: DRIVE_SCOPES,
-                        callback: (tokenResponse) => {
+                        callback: async (tokenResponse) => {
                             if (tokenResponse.error) {
                                 mostraMessaggioDrive("Errore autenticazione Google: " + tokenResponse.error, "error");
                                 return;
                             }
                             driveAccessToken = tokenResponse.access_token;
                             aggiornaStatoUIDrive(true);
-                            mostraMessaggioDrive("Collegamento al tuo Google Drive effettuato con successo!", "success");
+                            
+                            mostraMessaggioDrive(
+                                "Google Drive collegato. Ricerca del backup in corso...",
+                                "info"
+                            );
+
+await ripristinaBackupDrive(true);
                         }
                     });
                 }
@@ -1568,7 +1539,7 @@
             }
         }
 
-        async function ripristinaBackupDrive() {
+        async function ripristinaBackupDrive(ripristinoAutomatico = false) {
             if (!driveAccessToken) {
                 mostraMessaggioDrive("Accedi prima con Google Drive.", "error");
                 return;
@@ -1581,7 +1552,13 @@
                 return;
             }
 
-            if (!confirm(`Vuoi davvero ripristinare i dati dal file "${rawPath}"? I dati attualmente presenti nel browser verranno sovrascritti.`)) {
+            if (
+                !ripristinoAutomatico &&
+                !confirm(
+                    `Vuoi davvero ripristinare i dati dal file "${rawPath}"? ` +
+                    `I dati attualmente presenti nel browser verranno sovrascritti.`
+               )
+            ) {
                 return;
             }
 
@@ -1590,9 +1567,14 @@
 
                 const { fileId } = await risolviPercorsoDrive(rawPath, false);
                 if (!fileId) {
-                    mostraMessaggioDrive(`❌ File di backup non trovato al percorso "${rawPath}".`, "error");
-                    return;
-                }
+                    mostraMessaggioDrive(
+                         `Nessun backup trovato in "${rawPath}". ` +
+                         `Se questo è il primo accesso, inserisci categorie, scuderie e spese, ` +
+                         `quindi premi "Salva su Drive".`,
+                         "info"
+                   );
+                   return;
+               }
 
                 const downloadRes = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
                 const arrayBuffer = await downloadRes.arrayBuffer();
