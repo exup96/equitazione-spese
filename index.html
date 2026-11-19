@@ -996,34 +996,65 @@
         }
 
         function updateKPIs(year) {
-            const targetYear = year === "ALL" ? "2026" : year;
-            document.getElementById('kpi-label-totale').innerText = `Totale Speso ${targetYear}`;
 
-            let total = 0;
-            dataSpese.forEach(s => {
+    const isAllYears = year === "ALL";
 
-            const dataRiferimento =
-                s.isFattura ? s.data : s.dataEvento;
+    // Etichetta KPI
+    document.getElementById('kpi-label-totale').innerText =
+        isAllYears ? "Totale Speso - Tutti gli Anni" : `Totale Speso ${year}`;
 
-            if (dataRiferimento && dataRiferimento.startsWith(targetYear)) {
+    let total = 0;
 
+    dataSpese.forEach(s => {
+
+        // Se è fattura usa Data Fattura.
+        // Se NON è fattura usa Data Evento.
+        const dataRiferimento =
+            s.isFattura ? s.data : s.dataEvento;
+
+        const matchYear =
+            isAllYears ||
+            (dataRiferimento && dataRiferimento.startsWith(year));
+
+        if (matchYear) {
             const val = parseFloat(s.importo);
 
             if (!isNaN(val)) {
                 total += val;
             }
         }
-});
+    });
 
 
-            let racesCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear)).length;
-            let clearsCount = dataConcorsi.filter(c => c.data && c.data.startsWith(targetYear) && (c.pen === 0 || c.pen === "0")).length;
+    // Gare / percorsi netti
+    const concorsiFiltrati = dataConcorsi.filter(c => {
 
-            document.getElementById('kpi-total').innerText = `€ ${total.toFixed(2)}`;
-            document.getElementById('kpi-avg').innerText = `€ ${(total / 12).toFixed(2)}`;
-            document.getElementById('kpi-races').innerText = racesCount;
-            document.getElementById('kpi-clears').innerText = clearsCount;
+        if (isAllYears) {
+            return true;
         }
+
+        return c.data && c.data.startsWith(year);
+    });
+
+    const racesCount = concorsiFiltrati.length;
+
+    const clearsCount = concorsiFiltrati.filter(c =>
+        c.pen === 0 || c.pen === "0"
+    ).length;
+
+
+    document.getElementById('kpi-total').innerText =
+        `€ ${total.toFixed(2)}`;
+
+    document.getElementById('kpi-avg').innerText =
+        `€ ${(total / 12).toFixed(2)}`;
+
+    document.getElementById('kpi-races').innerText =
+        racesCount;
+
+    document.getElementById('kpi-clears').innerText =
+        clearsCount;
+}
 
         function populateSelects() {
             const scuHTML = dataScuderie.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -1333,91 +1364,165 @@ const dataEv =
         }
 
         function updateChart() {
-            if (!costChartInstance) return;
 
-            const selectedYearFilter = document.getElementById('chartFilterAnno').value;
-            let yearsToProcess = [];
+    if (!costChartInstance) return;
 
-            if (selectedYearFilter === "ALL") {
+    const selectedYearFilter =
+        document.getElementById('chartFilterAnno').value;
 
-    let ySet = new Set();
+    let yearsToProcess = [];
 
-    dataSpese.forEach(s => {
 
-        const dataRiferimento =
-            s.isFattura ? s.data : s.dataEvento;
+    // =====================================================
+    // DETERMINAZIONE DEGLI ANNI DA VISUALIZZARE
+    // =====================================================
 
-        if (dataRiferimento && dataRiferimento.length >= 4) {
-            ySet.add(dataRiferimento.substring(0, 4));
+    if (selectedYearFilter === "ALL") {
+
+        const ySet = new Set();
+
+        dataSpese.forEach(s => {
+
+            // Fattura -> Data Fattura
+            // No fattura -> Data Evento
+            const dataRiferimento =
+                s.isFattura ? s.data : s.dataEvento;
+
+            if (
+                dataRiferimento &&
+                dataRiferimento.length >= 4
+            ) {
+                ySet.add(
+                    dataRiferimento.substring(0, 4)
+                );
+            }
+
+        });
+
+        yearsToProcess =
+            Array.from(ySet).sort();
+
+    } else {
+
+        yearsToProcess =
+            [selectedYearFilter];
+
+    }
+
+
+    // =====================================================
+    // COLORI SERIE
+    // =====================================================
+
+    const colors = [
+        {
+            border: '#1b4332',
+            bg: 'rgba(27, 67, 50, 0.1)'
+        },
+        {
+            border: '#d4af37',
+            bg: 'rgba(212, 175, 55, 0.1)'
+        },
+        {
+            border: '#3b82f6',
+            bg: 'rgba(59, 130, 246, 0.1)'
+        },
+        {
+            border: '#ef4444',
+            bg: 'rgba(239, 68, 68, 0.1)'
+        },
+        {
+            border: '#8b5cf6',
+            bg: 'rgba(139, 92, 246, 0.1)'
         }
+    ];
+
+
+    let datasets = [];
+
+
+    // =====================================================
+    // COSTRUZIONE SERIE PER ANNO
+    // =====================================================
+
+    yearsToProcess.forEach((yr, idx) => {
+
+        const monthlyTotals =
+            new Array(12).fill(0);
+
+
+        dataSpese.forEach(s => {
+
+            const dataRiferimento =
+                s.isFattura ? s.data : s.dataEvento;
+
+
+            if (
+                dataRiferimento &&
+                dataRiferimento.startsWith(yr)
+            ) {
+
+                const parts =
+                    dataRiferimento.split('-');
+
+
+                if (parts.length >= 2) {
+
+                    const mIdx =
+                        parseInt(parts[1], 10) - 1;
+
+                    const val =
+                        parseFloat(s.importo);
+
+
+                    if (
+                        mIdx >= 0 &&
+                        mIdx < 12 &&
+                        !isNaN(val)
+                    ) {
+
+                        monthlyTotals[mIdx] += val;
+
+                    }
+                }
+            }
+        });
+
+
+        const col =
+            colors[idx % colors.length];
+
+
+        datasets.push({
+
+            label: `Anno ${yr}`,
+
+            data: monthlyTotals,
+
+            borderColor: col.border,
+
+            backgroundColor: col.bg,
+
+            borderWidth: 2.5,
+
+            fill: true,
+
+            tension: 0.2
+
+        });
 
     });
 
-    yearsToProcess = Array.from(ySet).sort();
 
-    if (yearsToProcess.length === 0) {
-        yearsToProcess = ["2026"];
-    }
+    // =====================================================
+    // AGGIORNAMENTO CHART.JS
+    // =====================================================
 
-} else {
+    costChartInstance.data.datasets =
+        datasets;
 
-    yearsToProcess = [selectedYearFilter];
-
+    costChartInstance.update();
 }
-
-            const colors = [
-                { border: '#1b4332', bg: 'rgba(27, 67, 50, 0.1)' },
-                { border: '#d4af37', bg: 'rgba(212, 175, 55, 0.1)' },
-                { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-                { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
-                { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' }
-            ];
-
-            let datasets = [];
-
-            yearsToProcess.forEach((yr, idx) => {
-                let monthlyTotals = new Array(12).fill(0);
-
-                dataSpese.forEach(s => {
-
-                    const dataRiferimento =
-                        s.isFattura ? s.data : s.dataEvento;
-
-                    if (dataRiferimento && dataRiferimento.startsWith(yr)) {
-
-                        const parts = dataRiferimento.split('-');
-                        if (parts.length >= 2) {
-                            const mIdx = parseInt(parts[1], 10) - 1;
-                            const val = parseFloat(s.importo);
-                            if (mIdx >= 0 && mIdx < 12 && !isNaN(val)) {
-                                monthlyTotals[mIdx] += val;
-                            }
-                        }
-                    }
-                });
-
-                const col = colors[idx % colors.length];
-                datasets.push({
-                    label: `Anno ${yr}`,
-                    data: monthlyTotals,
-                    borderColor: col.border,
-                    backgroundColor: col.bg,
-                    borderWidth: 2.5,
-                    fill: true,
-                    tension: 0.2
-                });
-            });
-
-            costChartInstance.data.datasets = datasets;
-            costChartInstance.update();
-        }
-
-        function saveStorage() {
-            localStorage.setItem("spese_v12", JSON.stringify(dataSpese));
-            localStorage.setItem("conc_v12", JSON.stringify(dataConcorsi));
-            localStorage.setItem("cat_v12", JSON.stringify(dataCategorie));
-            localStorage.setItem("scu_v12", JSON.stringify(dataScuderie));
-        }
 
         // =====================================================
         // EQUIRESULTS - GESTIONE LINK ATLETA
