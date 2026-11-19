@@ -1339,17 +1339,31 @@ const dataEv =
             let yearsToProcess = [];
 
             if (selectedYearFilter === "ALL") {
-                let ySet = new Set();
-                dataSpese.forEach(s => {
-                    if (s.data && s.data.length >= 4) {
-                        ySet.add(s.data.substring(0, 4));
-                    }
-                });
-                yearsToProcess = Array.from(ySet).sort();
-                if (yearsToProcess.length === 0) yearsToProcess = ["2026"];
-            } else {
-                yearsToProcess = [selectedYearFilter];
-            }
+
+    let ySet = new Set();
+
+    dataSpese.forEach(s => {
+
+        const dataRiferimento =
+            s.isFattura ? s.data : s.dataEvento;
+
+        if (dataRiferimento && dataRiferimento.length >= 4) {
+            ySet.add(dataRiferimento.substring(0, 4));
+        }
+
+    });
+
+    yearsToProcess = Array.from(ySet).sort();
+
+    if (yearsToProcess.length === 0) {
+        yearsToProcess = ["2026"];
+    }
+
+} else {
+
+    yearsToProcess = [selectedYearFilter];
+
+}
 
             const colors = [
                 { border: '#1b4332', bg: 'rgba(27, 67, 50, 0.1)' },
