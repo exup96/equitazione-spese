@@ -39,7 +39,7 @@
                 <div class="text-xs bg-emerald-900/60 px-3 py-1.5 rounded-lg border border-emerald-700 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-emerald-100 font-medium">
-                        Cloud &amp; Backup Locale
+                        Google Sheet &amp; Backup Locale
                     </span>
                 </div>
             </div>
@@ -193,14 +193,14 @@
         <!-- SEZIONE 4: TABELLE E DECODIFICHE + BACKUP -->
         <section id="sec-tabelle" class="space-y-4 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <!-- CARD 1: BACKUP GOOGLE DRIVE -->
+                <!-- CARD 1: BACKUP GOOGLE SHEET SU GOOGLE DRIVE -->
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
                     <div class="space-y-4">
                         <div class="flex flex-wrap justify-between items-start gap-2">
                             <div>
-                                <h2 class="font-bold text-sm text-slate-900">☁️ Backup su Google Drive</h2>
+                                <h2 class="font-bold text-sm text-slate-900">☁️ Foglio Google su Google Drive</h2>
                                 <p class="text-[11px] text-slate-500 mt-1">
-                                    Sincronizza automaticamente un file Excel (.xlsx) sul tuo spazio Google Drive personale.
+                                    Crea e sincronizza un Foglio di calcolo Google nativo sul tuo Google Drive personale.
                                 </p>
                             </div>
                             <div id="drive-status" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-[10px] font-semibold whitespace-nowrap">
@@ -219,18 +219,18 @@
 
                         <div>
                             <label for="drive-backup-path" class="block font-semibold text-xs text-slate-700 mb-1">
-                                Percorso file su Google Drive
+                                Percorso Foglio Google su Drive
                             </label>
                             <input
                                 id="drive-backup-path"
                                 type="text"
-                                value="DRIVE/Equitazione/Equitazione_Backup.xlsx"
+                                value="DRIVE/Equitazione/Equitazione_Backup"
                                 onchange="salvaPercorsoBackupDrive()"
-                                placeholder="DRIVE/Equitazione/Equitazione_Backup.xlsx"
+                                placeholder="DRIVE/Equitazione/Equitazione_Backup"
                                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             >
                             <p class="text-[10px] text-slate-400 mt-1">
-                                Le cartelle non ancora presenti verranno create automaticamente nel tuo Drive.
+                                Le cartelle mancanti verranno create automaticamente; il file sarà un Foglio Google apribile in Drive.
                             </p>
                         </div>
                     </div>
@@ -238,10 +238,10 @@
                     <div class="space-y-3 pt-2">
                         <div class="flex flex-wrap gap-2">
                             <button id="drive-backup-button" type="button" onclick="eseguiBackupDrive()" disabled class="px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition">
-                                ☁️ Salva su Drive
+                                ☁️ Salva su Foglio Google
                             </button>
                             <button id="drive-restore-button" type="button" onclick="ripristinaBackupDrive()" disabled class="px-4 py-2 bg-slate-200 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed transition">
-                                ↩ Ripristina da Drive
+                                ↩ Ripristina da Foglio Google
                             </button>
                         </div>
                         <div id="drive-message" class="hidden text-xs rounded-lg px-3 py-2"></div>
@@ -254,15 +254,15 @@
                         <div>
                             <h2 class="font-bold text-sm text-slate-900">💾 Backup Locale su Dispositivo (.xlsx)</h2>
                             <p class="text-[11px] text-slate-500 mt-1">
-                                Esporta o importa direttamente un file Excel sul tuo PC, smartphone o iCloud senza bisogno di alcun account Google.
+                                Esporta o importa un file .xlsx locale in qualsiasi momento.
                             </p>
                         </div>
                         <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-600 space-y-1">
-                            <p class="font-semibold text-slate-700">Cosa contiene il file Excel:</p>
+                            <p class="font-semibold text-slate-700">Fogli inclusi:</p>
                             <ul class="list-disc list-inside space-y-0.5 text-slate-500">
-                                <li>Foglio <strong>Spese</strong> (tutte le voci registrate)</li>
-                                <li>Foglio <strong>Concorsi</strong> (storico gare)</li>
-                                <li>Foglio <strong>Tabelle</strong> (categorie e scuderie personalizzate)</li>
+                                <li>Foglio <strong>Spese</strong></li>
+                                <li>Foglio <strong>Concorsi</strong></li>
+                                <li>Foglio <strong>Tabelle</strong> (categorie e scuderie)</li>
                                 <li>Foglio <strong>Configurazione</strong> (link atleta Equiresults)</li>
                             </ul>
                         </div>
@@ -380,61 +380,12 @@
                 </div>
                 <button type="button" onclick="chiudiGuida()" class="text-emerald-100 hover:text-white text-2xl font-bold">&times;</button>
             </div>
-
-            <div class="p-6 overflow-y-auto text-sm text-slate-700 space-y-7">
-                <section>
-                    <h3 class="font-bold text-racing-green text-base mb-3">🚀 Primo utilizzo</h3>
-                    <p class="mb-3">Al primo accesso l'applicazione è intenzionalmente vuota. Configura i tuoi dati prima di iniziare a registrare le spese.</p>
-                    <ol class="list-decimal ml-6 space-y-2">
-                        <li>Apri <strong>⚙️ Tabelle &amp; Backup</strong>.</li>
-                        <li>Inserisci le voci desiderate in <strong>Categorie Spesa</strong> utilizzando <strong>+ Nuova Categoria</strong>.</li>
-                        <li>Inserisci le strutture utilizzate in <strong>Scuderie &amp; Circoli</strong> tramite <strong>+ Nuova Scuderia/Località</strong>.</li>
-                        <li>Apri <strong>💳 Registro Spese</strong> e inizia a registrare i movimenti.</li>
-                        <li>Se desiderato, configura il collegamento Equiresults dell'atleta nella sezione <strong>🏆 Storico Concorsi</strong>.</li>
-                        <li>Torna in <strong>⚙️ Tabelle &amp; Backup</strong>, accedi a Google Drive e premi <strong>Salva su Drive</strong>.</li>
-                    </ol>
-                </section>
-
-                <section class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                    <h3 class="font-bold text-emerald-900 text-base mb-2">🔄 Accessi successivi</h3>
-                    <p>Apri <strong>⚙️ Tabelle &amp; Backup</strong> e seleziona <strong>Accedi con Google Drive</strong>.</p>
-                    <p class="mt-2">Dopo l'accesso l'applicazione cerca il backup personale e ripristina automaticamente i dati salvati in precedenza.</p>
-                </section>
-
-                <section>
-                    <h3 class="font-bold text-racing-green text-base mb-2">💳 Registro Spese</h3>
-                    <p>Utilizza <strong>+ Registra Nuova Spesa / Movimento</strong> per inserire una nuova voce.</p>
-                    <p class="mt-2">Categorie e Scuderie disponibili derivano dalle tabelle configurate dall'utente.</p>
-                </section>
-
-                <section>
-                    <h3 class="font-bold text-racing-green text-base mb-2">🏆 Storico Concorsi</h3>
-                    <p>Per collegare i risultati ufficiali dell'atleta tramite Equiresults:</p>
-                    <ol class="list-decimal ml-6 mt-3 space-y-2">
-                        <li>Apri il sito <strong>Equiresults</strong>.</li>
-                        <li>Seleziona <strong>Banca Dati</strong> → <strong>Cavalieri</strong>.</li>
-                        <li>Inserisci il <strong>Nome</strong> oppure il <strong>Cognome</strong> dell'atleta.</li>
-                        <li>Seleziona l'atleta desiderato dall'elenco dei risultati.</li>
-                        <li>Copia l'indirizzo della pagina dell'atleta dalla barra degli indirizzi del browser.</li>
-                    </ol>
-                    <div class="bg-slate-100 rounded-lg px-4 py-3 font-mono text-xs mt-3">
-                        https://equiresults.com/rider/0000000
-                    </div>
-                </section>
-
-                <section>
-                    <h3 class="font-bold text-racing-green text-base mb-3">☁️ Backup Google Drive</h3>
-                    <div class="bg-slate-100 rounded-lg px-4 py-3 font-mono text-xs mt-3">
-                        DRIVE/Equitazione/Equitazione_Backup.xlsx
-                    </div>
-                </section>
-
-                <section class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h3 class="font-bold text-blue-900 text-base mb-2">🔐 Privacy e sicurezza</h3>
-                    <p>I dati restano locali nel browser o nel tuo Google Drive tramite OAuth 2.0 ufficiale Google.</p>
-                </section>
+            <div class="p-6 overflow-y-auto text-sm text-slate-700 space-y-5">
+                <p>Configura <strong>Categorie Spesa</strong> e <strong>Scuderie &amp; Circoli</strong> nel tab <strong>⚙️ Tabelle &amp; Backup</strong>, poi salva i dati sul Foglio Google o su file locale.</p>
+                <div class="bg-slate-100 rounded-lg px-4 py-3 font-mono text-xs">
+                    DRIVE/Equitazione/Equitazione_Backup
+                </div>
             </div>
-
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end rounded-b-2xl">
                 <button type="button" onclick="chiudiGuida()" class="px-5 py-2 bg-racing-green text-white font-bold text-xs rounded-lg hover:bg-emerald-800">
                     Chiudi
@@ -445,7 +396,7 @@
 
     <script>
         const GOOGLE_CLIENT_ID = "491259982162-al4qnvqu5hi9h0udqhlco1p12umf20a7.apps.googleusercontent.com";
-        const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive.file";
+        const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 
         let dataSpese = [];
         let dataConcorsi = [];
@@ -465,6 +416,31 @@
             if (!dateStr) return 0;
             const t = Date.parse(dateStr);
             return Number.isNaN(t) ? 0 : t;
+        }
+
+        function normalizzaDataImport(val) {
+            if (val === null || val === undefined || val === "") return "";
+
+            if (typeof val === "number" || /^\d+(\.\d+)?$/.test(String(val).trim())) {
+                const serial = Number(val);
+                if (serial > 20000 && serial < 100000) {
+                    const utcDays = Math.floor(serial - 25569);
+                    const d = new Date(utcDays * 86400 * 1000);
+                    if (!Number.isNaN(d.getTime())) {
+                        return d.toISOString().slice(0, 10);
+                    }
+                }
+            }
+
+            const str = String(val).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+            const mIt = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (mIt) {
+                return `${mIt[3]}-${mIt[2].padStart(2, "0")}-${mIt[1].padStart(2, "0")}`;
+            }
+
+            return str;
         }
 
         function escapeHtml(str) {
@@ -496,17 +472,13 @@
         }
 
         function switchTab(tab) {
-            const tabs = ['spese', 'concorsi', 'grafico', 'tabelle'];
-            tabs.forEach(t => {
+            ['spese', 'concorsi', 'grafico', 'tabelle'].forEach(t => {
                 document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
                 document.getElementById(`tab-${t}`).className = t === tab
                     ? 'flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-racing-green text-white shadow whitespace-nowrap'
                     : 'flex-1 py-2 px-3 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 whitespace-nowrap';
             });
-
-            if (tab === 'grafico') {
-                updateChart();
-            }
+            if (tab === 'grafico') updateChart();
         }
 
         function getTotaleFatturaByData(dataStr) {
@@ -626,13 +598,10 @@
             });
 
             const concorsiFiltrati = dataConcorsi.filter(c => isAllYears || (c.data && c.data.startsWith(year)));
-            const racesCount = concorsiFiltrati.length;
-            const clearsCount = concorsiFiltrati.filter(c => c.pen === 0 || c.pen === "0").length;
-
             document.getElementById('kpi-total').innerText = `€ ${total.toFixed(2)}`;
             document.getElementById('kpi-avg').innerText = `€ ${(total / 12).toFixed(2)}`;
-            document.getElementById('kpi-races').innerText = racesCount;
-            document.getElementById('kpi-clears').innerText = clearsCount;
+            document.getElementById('kpi-races').innerText = concorsiFiltrati.length;
+            document.getElementById('kpi-clears').innerText = concorsiFiltrati.filter(c => c.pen === 0 || c.pen === "0").length;
         }
 
         function fillSelect(selectId, items) {
@@ -677,9 +646,7 @@
         }
 
         function updateTotaleFatturaPreview() {
-            const isFatt = document.getElementById('inputSpesaIsFattura').checked;
-            if (!isFatt) return;
-
+            if (!document.getElementById('inputSpesaIsFattura').checked) return;
             const dataStr = document.getElementById('inputSpesaData').value;
             const existingSum = getTotaleFatturaByData(dataStr);
             const currentImp = parseFloat(document.getElementById('inputSpesaImporto').value) || 0;
@@ -731,7 +698,7 @@
             const dataEv = (!isFatt || isConcorso) ? document.getElementById('inputSpesaDataEvento').value : "";
             const impVal = document.getElementById('inputSpesaImporto').value;
 
-            const newObj = {
+            dataSpese.unshift({
                 id: Date.now(),
                 data: dataFatt,
                 isFattura: isFatt,
@@ -740,9 +707,8 @@
                 dettaglio: cat,
                 importo: impVal !== "" ? parseFloat(impVal) : null,
                 note: document.getElementById('inputSpesaNote').value
-            };
+            });
 
-            dataSpese.unshift(newObj);
             saveStorage();
             renderSpese();
             updateChart();
@@ -972,26 +938,24 @@
                 Importo: (s.importo !== null && s.importo !== "" && !Number.isNaN(Number(s.importo))) ? Number(s.importo) : "",
                 Note: s.note || ""
             }));
-            const wsSpese = XLSX.utils.json_to_sheet(speseRows.length > 0 ? speseRows : [{
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(speseRows.length ? speseRows : [{
                 ID: "", Data_Fattura: "", Fattura: "", Data_Evento: "", Scuderia: "", Dettaglio: "", Importo: "", Note: ""
-            }]);
-            XLSX.utils.book_append_sheet(wb, wsSpese, "Spese");
+            }]), "Spese");
 
             const concorsiRows = dataConcorsi.map(c => ({
                 ID: c.id,
                 Data: c.data || "",
                 Scuderia: c.scuderia || "",
                 Concorso: c.concorso || "",
-                Posizione: c.pos !== null && c.pos !== "" ? c.pos : "",
-                Penalita: c.pen !== null && c.pen !== "" ? c.pen : "",
+                Posizione: c.pos ?? "",
+                Penalita: c.pen ?? "",
                 Tempo: c.tempo || "",
                 Percentuale: c.perc || "",
                 Note: c.note || ""
             }));
-            const wsConcorsi = XLSX.utils.json_to_sheet(concorsiRows.length > 0 ? concorsiRows : [{
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(concorsiRows.length ? concorsiRows : [{
                 ID: "", Data: "", Scuderia: "", Concorso: "", Posizione: "", Penalita: "", Tempo: "", Percentuale: "", Note: ""
-            }]);
-            XLSX.utils.book_append_sheet(wb, wsConcorsi, "Concorsi");
+            }]), "Concorsi");
 
             const maxLen = Math.max(dataCategorie.length, dataScuderie.length);
             const tabelleRows = [];
@@ -1001,17 +965,15 @@
                     Scuderie_Circoli: dataScuderie[i] || ""
                 });
             }
-            const wsTabelle = XLSX.utils.json_to_sheet(tabelleRows.length > 0 ? tabelleRows : [{
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tabelleRows.length ? tabelleRows : [{
                 Categorie_Spesa: "", Scuderie_Circoli: ""
-            }]);
-            XLSX.utils.book_append_sheet(wb, wsTabelle, "Tabelle");
+            }]), "Tabelle");
 
             const configRows = [
                 { Chiave: "equiresultsAthleteUrl", Valore: localStorage.getItem("equiresultsAthleteUrl") || "" },
                 { Chiave: "dataBackup", Valore: new Date().toISOString() }
             ];
-            const wsConfig = XLSX.utils.json_to_sheet(configRows);
-            XLSX.utils.book_append_sheet(wb, wsConfig, "Configurazione");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(configRows), "Configurazione");
 
             const wbArrayBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
             return new Blob([wbArrayBuffer], {
@@ -1029,13 +991,13 @@
                         const imp = r.Importo !== "" && !Number.isNaN(parseFloat(r.Importo)) ? parseFloat(r.Importo) : null;
                         return {
                             id: r.ID ? Number(r.ID) : (Date.now() + index),
-                            data: r.Data_Fattura ? String(r.Data_Fattura).trim() : "",
+                            data: normalizzaDataImport(r.Data_Fattura),
                             isFattura: isFatt,
-                            dataEvento: r.Data_Evento ? String(r.Data_Evento).trim() : "",
-                            scuderia: r.Scuderia ? String(r.Scuderia).trim() : "",
-                            dettaglio: r.Dettaglio ? String(r.Dettaglio).trim() : "",
+                            dataEvento: normalizzaDataImport(r.Data_Evento),
+                            scuderia: String(r.Scuderia || "").trim(),
+                            dettaglio: String(r.Dettaglio || "").trim(),
                             importo: imp,
-                            note: r.Note ? String(r.Note).trim() : ""
+                            note: String(r.Note || "").trim()
                         };
                     });
             }
@@ -1046,14 +1008,14 @@
                     .filter(r => r.Concorso !== "" || r.Data !== "")
                     .map((r, index) => ({
                         id: r.ID ? Number(r.ID) : (Date.now() + index),
-                        data: r.Data ? String(r.Data).trim() : "",
-                        scuderia: r.Scuderia ? String(r.Scuderia).trim() : "",
-                        concorso: r.Concorso ? String(r.Concorso).trim() : "",
+                        data: normalizzaDataImport(r.Data),
+                        scuderia: String(r.Scuderia || "").trim(),
+                        concorso: String(r.Concorso || "").trim(),
                         pos: r.Posizione !== "" && !Number.isNaN(parseInt(r.Posizione, 10)) ? parseInt(r.Posizione, 10) : null,
                         pen: r.Penalita !== "" && !Number.isNaN(parseInt(r.Penalita, 10)) ? parseInt(r.Penalita, 10) : null,
-                        tempo: r.Tempo ? String(r.Tempo).trim() : "",
-                        perc: r.Percentuale ? String(r.Percentuale).trim() : "",
-                        note: r.Note ? String(r.Note).trim() : ""
+                        tempo: String(r.Tempo || "").trim(),
+                        perc: String(r.Percentuale || "").trim(),
+                        note: String(r.Note || "").trim()
                     }));
             }
 
@@ -1082,7 +1044,6 @@
         function mostraMessaggioBox(elementId, message, type) {
             const messageBox = document.getElementById(elementId);
             if (!messageBox) return;
-
             messageBox.innerText = message;
             messageBox.classList.remove(
                 "hidden",
@@ -1090,7 +1051,6 @@
                 "bg-red-50", "text-red-700", "border-red-200",
                 "bg-blue-50", "text-blue-700", "border-blue-200"
             );
-
             if (type === "success") {
                 messageBox.classList.add("bg-emerald-50", "text-emerald-800", "border", "border-emerald-200");
             } else if (type === "error") {
@@ -1112,7 +1072,6 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-
                 mostraMessaggioBox("local-message", `✅ File Excel scaricato correttamente (${dataSpese.length} spese esportate).`, "success");
             } catch (err) {
                 mostraMessaggioBox("local-message", "❌ Errore durante l'esportazione: " + err.message, "error");
@@ -1122,7 +1081,6 @@
         function caricaBackupLocale(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             if (!confirm(`Vuoi importare i dati dal file "${file.name}"? I dati attualmente salvati nel browser verranno sovrascritti.`)) {
                 event.target.value = "";
                 return;
@@ -1133,11 +1091,9 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const wb = XLSX.read(data, { type: "array" });
-
                     if (!wb.Sheets["Spese"] && !wb.Sheets["Tabelle"]) {
-                        throw new Error("Il file selezionato non sembra un backup valido di questa applicazione.");
+                        throw new Error("Il file selezionato non sembra un backup valido.");
                     }
-
                     importaDatiDaWorkbook(wb);
                     mostraMessaggioBox(
                         "local-message",
@@ -1153,7 +1109,9 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Google Drive
+        // =====================================================
+        // GOOGLE DRIVE + GOOGLE SHEETS NATIVO
+        // =====================================================
         let driveTokenClient = null;
         let driveAccessToken = null;
 
@@ -1161,24 +1119,10 @@
             const inputPath = document.getElementById("drive-backup-path");
             if (inputPath) {
                 const savedPath = localStorage.getItem("googleDriveBackupPath");
-                inputPath.value = savedPath || "DRIVE/Equitazione/Equitazione_Backup.xlsx";
+                inputPath.value = savedPath || "DRIVE/Equitazione/Equitazione_Backup";
                 if (!savedPath) localStorage.setItem("googleDriveBackupPath", inputPath.value);
             }
             aggiornaStatoUIDrive(false);
-        }
-
-        function salvaPercorsoBackupDrive() {
-            const inputPath = document.getElementById("drive-backup-path");
-            const path = normalizzaPercorsoDrive(inputPath.value);
-
-            if (!path || !path.toLowerCase().endsWith(".xlsx")) {
-                mostraMessaggioDrive("Il percorso deve terminare con .xlsx", "error");
-                return;
-            }
-
-            inputPath.value = path;
-            localStorage.setItem("googleDriveBackupPath", path);
-            mostraMessaggioDrive("Percorso del backup memorizzato correttamente.", "success");
         }
 
         function normalizzaPercorsoDrive(path) {
@@ -1188,7 +1132,21 @@
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length - 1);
             if (!path.toUpperCase().startsWith("DRIVE/")) path = "DRIVE/" + path;
+            // Rimuove eventuale estensione .xlsx se l'utente ha lasciato il vecchio percorso
+            path = path.replace(/\.xlsx$/i, "");
             return path;
+        }
+
+        function salvaPercorsoBackupDrive() {
+            const inputPath = document.getElementById("drive-backup-path");
+            const path = normalizzaPercorsoDrive(inputPath.value);
+            if (!path) {
+                mostraMessaggioDrive("Indica un nome o percorso valido per il Foglio Google.", "error");
+                return;
+            }
+            inputPath.value = path;
+            localStorage.setItem("googleDriveBackupPath", path);
+            mostraMessaggioDrive("Percorso del Foglio Google memorizzato.", "success");
         }
 
         function aggiornaStatoUIDrive(isConnected) {
@@ -1245,7 +1203,7 @@
                             }
                             driveAccessToken = tokenResponse.access_token;
                             aggiornaStatoUIDrive(true);
-                            mostraMessaggioDrive("Google Drive collegato. Ricerca del backup in corso...", "info");
+                            mostraMessaggioDrive("Google Drive collegato. Ricerca del Foglio Google in corso...", "info");
                             await ripristinaBackupDrive(true);
                         }
                     });
@@ -1277,7 +1235,7 @@
             }
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`Errore API Drive (${response.status}): ${errText}`);
+                throw new Error(`Errore API (${response.status}): ${errText}`);
             }
             return response;
         }
@@ -1305,32 +1263,179 @@
             return created.id;
         }
 
-        async function risolviPercorsoDrive(percorsoCompleto, creaCartelleMancanti = true) {
+        async function creaFoglioGoogleNativo(sheetTitle, parentId) {
+            const createRes = await driveFetch("https://sheets.googleapis.com/v4/spreadsheets", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    properties: { title: sheetTitle },
+                    sheets: [
+                        { properties: { title: "Spese" } },
+                        { properties: { title: "Concorsi" } },
+                        { properties: { title: "Tabelle" } },
+                        { properties: { title: "Configurazione" } }
+                    ]
+                })
+            });
+            const createdSheet = await createRes.json();
+            const spreadsheetId = createdSheet.spreadsheetId;
+
+            if (parentId && parentId !== "root") {
+                await driveFetch(
+                    `https://www.googleapis.com/drive/v3/files/${spreadsheetId}?addParents=${parentId}&removeParents=root`,
+                    { method: "PATCH" }
+                );
+            }
+            return spreadsheetId;
+        }
+
+        async function risolviFoglioGoogleDrive(percorsoCompleto, creaSeMancante = true) {
             const norm = normalizzaPercorsoDrive(percorsoCompleto);
             const relative = norm.replace(/^DRIVE\//i, "");
             const segments = relative.split("/").filter(Boolean);
+            if (segments.length === 0) throw new Error("Specifica un nome per il Foglio Google.");
 
-            if (segments.length === 0 || !segments[segments.length - 1].toLowerCase().endsWith(".xlsx")) {
-                throw new Error("Il percorso deve terminare con un nome file .xlsx valido.");
-            }
-
-            const fileName = segments.pop();
+            const sheetTitle = segments.pop();
             let currentParentId = "root";
 
             for (const folderName of segments) {
-                currentParentId = await trovaOCreaCartellaDrive(folderName, currentParentId, creaCartelleMancanti);
-                if (!currentParentId) return { folderId: null, fileId: null, fileName };
+                currentParentId = await trovaOCreaCartellaDrive(folderName, currentParentId, creaSeMancante);
+                if (!currentParentId) return { folderId: null, spreadsheetId: null, sheetTitle };
             }
 
-            const safeFileName = fileName.replace(/'/g, "\\'");
-            const qFile = `name='${safeFileName}' and '${currentParentId}' in parents and trashed=false`;
-            const fileSearchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(qFile)}&fields=files(id,name,modifiedTime)&spaces=drive`;
+            const safeTitle = sheetTitle.replace(/'/g, "\\'");
+            const qFile = `name='${safeTitle}' and mimeType='application/vnd.google-apps.spreadsheet' and '${currentParentId}' in parents and trashed=false`;
+            const fileSearchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(qFile)}&fields=files(id,name)&spaces=drive`;
 
             const fileRes = await driveFetch(fileSearchUrl);
             const fileData = await fileRes.json();
-            const existingFileId = (fileData.files && fileData.files.length > 0) ? fileData.files[0].id : null;
+            let spreadsheetId = (fileData.files && fileData.files.length > 0) ? fileData.files[0].id : null;
 
-            return { folderId: currentParentId, fileId: existingFileId, fileName };
+            if (!spreadsheetId && creaSeMancante) {
+                spreadsheetId = await creaFoglioGoogleNativo(sheetTitle, currentParentId);
+            }
+
+            return { folderId: currentParentId, spreadsheetId, sheetTitle };
+        }
+
+        async function scriviDatiSuFoglioGoogle(spreadsheetId) {
+            const speseValues = [
+                ["ID", "Data_Fattura", "Fattura", "Data_Evento", "Scuderia", "Dettaglio", "Importo", "Note"],
+                ...dataSpese.map(s => [
+                    s.id,
+                    s.data || "",
+                    s.isFattura ? "Sì" : "No",
+                    s.dataEvento || "",
+                    s.scuderia || "",
+                    s.dettaglio || "",
+                    (s.importo !== null && s.importo !== "" && !Number.isNaN(Number(s.importo))) ? Number(s.importo) : "",
+                    s.note || ""
+                ])
+            ];
+
+            const concorsiValues = [
+                ["ID", "Data", "Scuderia", "Concorso", "Posizione", "Penalita", "Tempo", "Percentuale", "Note"],
+                ...dataConcorsi.map(c => [
+                    c.id,
+                    c.data || "",
+                    c.scuderia || "",
+                    c.concorso || "",
+                    c.pos ?? "",
+                    c.pen ?? "",
+                    c.tempo || "",
+                    c.perc || "",
+                    c.note || ""
+                ])
+            ];
+
+            const maxLen = Math.max(dataCategorie.length, dataScuderie.length);
+            const tabelleValues = [["Categorie_Spesa", "Scuderie_Circoli"]];
+            for (let i = 0; i < maxLen; i++) {
+                tabelleValues.push([dataCategorie[i] || "", dataScuderie[i] || ""]);
+            }
+
+            const configValues = [
+                ["Chiave", "Valore"],
+                ["equiresultsAthleteUrl", localStorage.getItem("equiresultsAthleteUrl") || ""],
+                ["dataBackup", new Date().toISOString()]
+            ];
+
+            await driveFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchClear`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ranges: ["Spese!A:H", "Concorsi!A:I", "Tabelle!A:B", "Configurazione!A:B"]
+                })
+            });
+
+            await driveFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    valueInputOption: "USER_ENTERED",
+                    data: [
+                        { range: "Spese!A1", values: speseValues },
+                        { range: "Concorsi!A1", values: concorsiValues },
+                        { range: "Tabelle!A1", values: tabelleValues },
+                        { range: "Configurazione!A1", values: configValues }
+                    ]
+                })
+            });
+        }
+
+        async function leggiDatiDaFoglioGoogle(spreadsheetId) {
+            const ranges = "ranges=Spese!A1:H&ranges=Concorsi!A1:I&ranges=Tabelle!A1:B&ranges=Configurazione!A1:B";
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${ranges}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
+            const res = await driveFetch(url);
+            const json = await res.json();
+
+            const [speseRange, concRange, tabRange, cfgRange] = json.valueRanges;
+
+            const rowsSpese = (speseRange.values || []).slice(1);
+            dataSpese = rowsSpese
+                .filter(r => r[4] || r[5] || (r[6] !== undefined && r[6] !== ""))
+                .map((r, idx) => ({
+                    id: r[0] ? Number(r[0]) : (Date.now() + idx),
+                    data: normalizzaDataImport(r[1]),
+                    isFattura: ["sì", "si", "true", "1"].includes(String(r[2] || "").toLowerCase().trim()) || r[2] === true,
+                    dataEvento: normalizzaDataImport(r[3]),
+                    scuderia: String(r[4] || "").trim(),
+                    dettaglio: String(r[5] || "").trim(),
+                    importo: (r[6] !== undefined && r[6] !== "" && !Number.isNaN(Number(r[6]))) ? Number(r[6]) : null,
+                    note: String(r[7] || "").trim()
+                }));
+
+            const rowsConc = (concRange.values || []).slice(1);
+            dataConcorsi = rowsConc
+                .filter(r => r[2] || r[3])
+                .map((r, idx) => ({
+                    id: r[0] ? Number(r[0]) : (Date.now() + idx),
+                    data: normalizzaDataImport(r[1]),
+                    scuderia: String(r[2] || "").trim(),
+                    concorso: String(r[3] || "").trim(),
+                    pos: (r[4] !== undefined && r[4] !== "" && !Number.isNaN(parseInt(r[4], 10))) ? parseInt(r[4], 10) : null,
+                    pen: (r[5] !== undefined && r[5] !== "" && !Number.isNaN(parseInt(r[5], 10))) ? parseInt(r[5], 10) : null,
+                    tempo: String(r[6] || "").trim(),
+                    perc: String(r[7] || "").trim(),
+                    note: String(r[8] || "").trim()
+                }));
+
+            const rowsTab = (tabRange.values || []).slice(1);
+            dataCategorie = rowsTab.map(r => String(r[0] || "").trim()).filter(Boolean);
+            dataScuderie = rowsTab.map(r => String(r[1] || "").trim()).filter(Boolean);
+
+            const rowsCfg = (cfgRange.values || []).slice(1);
+            const eqRow = rowsCfg.find(r => r[0] === "equiresultsAthleteUrl");
+            if (eqRow && eqRow[1]) {
+                localStorage.setItem("equiresultsAthleteUrl", String(eqRow[1]).trim());
+                initEquiresults();
+            }
+
+            saveStorage();
+            populateSelects();
+            renderSpese();
+            renderTabelle();
+            updateChart();
         }
 
         async function eseguiBackupDrive() {
@@ -1340,38 +1445,22 @@
             }
             const inputPath = document.getElementById("drive-backup-path");
             const rawPath = normalizzaPercorsoDrive(inputPath.value);
-            if (!rawPath || !rawPath.toLowerCase().endsWith(".xlsx")) {
-                mostraMessaggioDrive("Specifica un percorso valido terminante in .xlsx.", "error");
+            if (!rawPath) {
+                mostraMessaggioDrive("Specifica un percorso valido per il Foglio Google.", "error");
                 return;
             }
             inputPath.value = rawPath;
             localStorage.setItem("googleDriveBackupPath", rawPath);
 
             try {
-                mostraMessaggioDrive("⏳ Salvataggio backup su Google Drive in corso...", "info");
-                const { folderId, fileId, fileName } = await risolviPercorsoDrive(rawPath, true);
-                const excelBlob = generaWorkbookExcel();
-
-                const metadata = {
-                    name: fileName,
-                    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                };
-                if (!fileId) metadata.parents = [folderId];
-
-                const form = new FormData();
-                form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-                form.append("file", excelBlob);
-
-                const uploadUrl = fileId
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
-                    : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
-
-                await driveFetch(uploadUrl, { method: fileId ? "PATCH" : "POST", body: form });
+                mostraMessaggioDrive("⏳ Salvataggio sul Foglio Google in corso...", "info");
+                const { spreadsheetId } = await risolviFoglioGoogleDrive(rawPath, true);
+                await scriviDatiSuFoglioGoogle(spreadsheetId);
 
                 const ora = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-                mostraMessaggioDrive(`✅ Backup completato alle ${ora} (${dataSpese.length} spese salvate in "${rawPath}").`, "success");
+                mostraMessaggioDrive(`✅ Foglio Google aggiornato alle ${ora} (${dataSpese.length} spese salvate in "${rawPath}").`, "success");
             } catch (err) {
-                mostraMessaggioDrive("❌ Errore durante il backup: " + err.message, "error");
+                mostraMessaggioDrive("❌ Errore durante il salvataggio su Foglio Google: " + err.message, "error");
             }
         }
 
@@ -1382,34 +1471,30 @@
             }
             const inputPath = document.getElementById("drive-backup-path");
             const rawPath = normalizzaPercorsoDrive(inputPath.value);
-            if (!rawPath || !rawPath.toLowerCase().endsWith(".xlsx")) {
-                mostraMessaggioDrive("Specifica un percorso valido terminante in .xlsx.", "error");
+            if (!rawPath) {
+                mostraMessaggioDrive("Specifica un percorso valido per il Foglio Google.", "error");
                 return;
             }
 
-            if (!ripristinoAutomatico && !confirm(`Vuoi davvero ripristinare i dati dal file "${rawPath}"? I dati attualmente presenti nel browser verranno sovrascritti.`)) {
+            if (!ripristinoAutomatico && !confirm(`Vuoi ripristinare i dati dal Foglio Google "${rawPath}"? I dati attualmente nel browser verranno sovrascritti.`)) {
                 return;
             }
 
             try {
-                mostraMessaggioDrive("⏳ Ricerca e download del backup da Google Drive...", "info");
-                const { fileId } = await risolviPercorsoDrive(rawPath, false);
-                if (!fileId) {
-                    mostraMessaggioDrive(`Nessun backup trovato in "${rawPath}". Se è il primo accesso, inserisci i dati e premi "Salva su Drive".`, "info");
+                mostraMessaggioDrive("⏳ Lettura del Foglio Google da Drive...", "info");
+                const { spreadsheetId } = await risolviFoglioGoogleDrive(rawPath, false);
+                if (!spreadsheetId) {
+                    mostraMessaggioDrive(`Nessun Foglio Google trovato in "${rawPath}". Configura i dati e premi "Salva su Foglio Google".`, "info");
                     return;
                 }
 
-                const downloadRes = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
-                const arrayBuffer = await downloadRes.arrayBuffer();
-                const wb = XLSX.read(arrayBuffer, { type: "array" });
-
-                importaDatiDaWorkbook(wb);
+                await leggiDatiDaFoglioGoogle(spreadsheetId);
                 mostraMessaggioDrive(
                     `✅ Ripristino completato! Caricate ${dataSpese.length} spese, ${dataCategorie.length} categorie e ${dataScuderie.length} scuderie.`,
                     "success"
                 );
             } catch (err) {
-                mostraMessaggioDrive("❌ Errore durante il ripristino: " + err.message, "error");
+                mostraMessaggioDrive("❌ Errore durante il ripristino dal Foglio Google: " + err.message, "error");
             }
         }
 
